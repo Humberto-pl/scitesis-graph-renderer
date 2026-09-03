@@ -27,7 +27,7 @@ export function GraphRenderer({ model }: { model: GraphViewModel }) {
   const ids = new Set(visible.map(n => n.id));
   const selectedNode = selected && 'canonicalId' in selected && ['CLAIM', 'SUBCLAIM'].includes(selected.kind) ? selected : undefined;
   const highlight = selectedNode ? existingHighlightPath(model, selectedNode.id) : undefined;
-  const toggleCollapse = (capability: 'subclaims' | 'evidence', id: string) => setCollapsed(old => { const next = new Set(old); const key = `${capability}:${id}`; next.has(key) ? next.delete(key) : next.add(key); return next; });
+  const toggleCollapse = (capability: 'subclaims' | 'evidence', id: string) => setCollapsed(old => { const next = new Set(old); const key = `${capability}:${id}`; if (next.has(key)) { next.delete(key); } else { next.add(key); } return next; });
   const nodes: Node[] = visible.map(n => ({
     id: n.id, position: layout[n.id] ?? n.position,
     data: { label: <div className="node-content"><b>{withCanonicalCode(nodeKindDisplayLabel(n.kind), n.kind, showCodes)}</b><span>{n.label}</span>{n.state && <em>{withCanonicalCode(stateDisplayLabel(n.state), n.state, showCodes)}</em>}{n.isMaximumDefendable && <strong className="maximum-badge">★ Máximo defendible</strong>}<div className="node-actions">{n.collapseCapabilities.map(capability => <button key={capability} aria-label={`Alternar ${capability} de ${n.id}`} onClick={event => { event.stopPropagation(); toggleCollapse(capability, n.id); }}>{capability === 'subclaims' ? 'Subclaims −/+' : 'Evidencia −/+'}</button>)}</div></div> },
@@ -37,7 +37,7 @@ export function GraphRenderer({ model }: { model: GraphViewModel }) {
     id: e.id, source: e.source, target: e.target, label: withCanonicalCode(edgeDisplayLabel(e.kind), e.kind, showCodes), type: 'smoothstep',
     className: highlight && !highlight.edgeIds.has(e.id) ? 'dimmed' : highlight ? 'highlighted' : '',
   }));
-  const toggleKind = (kind: NodeKind) => setKinds(old => { const next = new Set(old); next.has(kind) ? next.delete(kind) : next.add(kind); return next; });
+  const toggleKind = (kind: NodeKind) => setKinds(old => { const next = new Set(old); if (next.has(kind)) { next.delete(kind); } else { next.add(kind); } return next; });
   const onNodesChange = (changes: NodeChange[]) => changes.forEach(change => {
     if (change.type === 'position' && change.position) setLayout(old => moveNode(old, change.id, change.position!));
   });
