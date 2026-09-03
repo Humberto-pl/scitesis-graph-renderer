@@ -7,9 +7,9 @@ export type DiagnosticState = typeof DIAGNOSTIC_STATES[number];
 export interface CanonicalEntity { id: string; kind: NodeKind; text?: string; sourceRefs?: string[]; [key: string]: unknown }
 export interface CanonicalRelation { id?: string; sourceId: string; targetId: string; kind: EdgeKind; label?: string }
 export interface CandidateArtifact { caseId: string; schemaVersion?: string; claims: Array<CanonicalEntity & { decomposition?: 'COMPOSITE_SEPARABLE' | 'INDIVISIBLE'; subclaims?: CanonicalEntity[] }>; entities?: CanonicalEntity[]; relations?: CanonicalRelation[] }
-export interface DiagnosisEntry { subjectId: string; state?: DiagnosticState; rules?: string[]; supportPath?: string[]; maximumDefendableClaim?: string; gravity?: string; reparability?: string }
+export interface DiagnosisEntry { subjectId: string; state?: DiagnosticState; rules?: string[]; supportPath?: string[]; maximumDefendableClaim?: string; isMaximumDefendable?: boolean; gravity?: string; reparability?: string }
 export interface DiagnosisArtifact { caseId?: string; entries?: DiagnosisEntry[]; entities?: CanonicalEntity[]; relations?: CanonicalRelation[] }
-export interface GraphNode { id: string; canonicalId: string; kind: NodeKind; label: string; text?: string; state?: DiagnosticState; rules: string[]; supportPath: string[]; sourceRefs: string[]; maximumDefendableClaim?: string; gravity?: string; reparability?: string; parentClaimId?: string; position: { x: number; y: number }; collapsible?: 'subclaims'|'evidence' }
+export interface GraphNode { id: string; canonicalId: string; kind: NodeKind; label: string; text?: string; state?: DiagnosticState; rules: string[]; supportPath: string[]; sourceRefs: string[]; maximumDefendableClaim?: string; isMaximumDefendable: boolean; gravity?: string; reparability?: string; parentClaimId?: string; position: { x: number; y: number }; collapseCapabilities: Array<'subclaims'|'evidence'> }
 export interface GraphEdge { id: string; source: string; target: string; kind: EdgeKind; label: string }
 export interface GraphViewModel { graphId: string; sourceCaseId: string; nodes: GraphNode[]; edges: GraphEdge[]; metadata: { adapterVersion: '0.1'; sourceSchemaVersion: string; generatedDeterministically: true } }
 export interface GraphOptions { direction?: 'LR'|'TB' }
