@@ -39,3 +39,5 @@ El drag solo actualiza coordenadas `x/y` de presentación: no altera Candidate, 
 Las etiquetas amigables de estados, relaciones y clases de nodo forman otra capa pura de presentación. El toggle **Mostrar códigos canónicos** permite añadir los códigos técnicos a la vista y el panel de detalle los conserva siempre; ningún label sustituye enums, `canonicalId` ni valores del dominio.
 
 Al seleccionar un claim o subclaim, el resaltado recorre exclusivamente aristas ya presentes en el `GraphViewModel`. Limpiar la selección o pulsar el fondo restaura la vista completa y no crea inferencias ni relaciones.
+
+Las puntas de flecha expresan únicamente la dirección canónica `source → target` de cada relación, no causalidad. Los nodos `STATE` presentan una etiqueta amigable cuando el código es conocido y conservan un fallback seguro —además del código accesible mediante el toggle y el inspector— para estados futuros.

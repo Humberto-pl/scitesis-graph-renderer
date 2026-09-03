@@ -1,4 +1,4 @@
-import type { DiagnosticState, EdgeKind, NodeKind } from './types';
+import { DIAGNOSTIC_STATES, type DiagnosticState, type EdgeKind, type GraphNode, type NodeKind } from './types';
 
 const states: Record<DiagnosticState, string> = {
   DEFENDIBLE: 'Defendible',
@@ -27,3 +27,13 @@ export const stateDisplayLabel = (code: DiagnosticState) => states[code];
 export const edgeDisplayLabel = (code: EdgeKind) => relations[code];
 export const nodeKindDisplayLabel = (code: NodeKind) => nodeKinds[code];
 export const withCanonicalCode = (label: string, code: string, show: boolean) => show ? `${label} · ${code}` : label;
+
+export const isDiagnosticState = (value: unknown): value is DiagnosticState =>
+  typeof value === 'string' && (DIAGNOSTIC_STATES as readonly string[]).includes(value);
+
+/** Resolves STATE content for display only; unknown/future values safely retain their canonical text. */
+export function nodeDisplayText(node: Pick<GraphNode, 'kind' | 'label' | 'text'>, showCodes: boolean): string {
+  const original = node.text ?? node.label;
+  if (node.kind !== 'STATE' || !isDiagnosticState(original)) return node.label;
+  return withCanonicalCode(stateDisplayLabel(original), original, showCodes);
+}
