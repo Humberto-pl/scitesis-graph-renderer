@@ -5,5 +5,5 @@ export function layoutGraph(nodes: Omit<GraphNode,'position'>[], _edges: GraphEd
   const groups = new Map<number, typeof nodes>();
   [...nodes].sort((a,b)=>a.id.localeCompare(b.id)).forEach(node => groups.set(rank[node.kind], [...(groups.get(rank[node.kind]) ?? []), node]));
   const direction = options.direction ?? 'LR';
-  return [...groups.entries()].sort(([a],[b])=>a-b).flatMap(([column, group]) => group.map((node,row) => ({ ...node, position: direction === 'LR' ? { x: column*280, y: row*150 } : { x: row*280, y: column*150 } })));
+  return [...groups.entries()].sort(([a],[b])=>a-b).flatMap(([column, group]) => group.map((node,row) => ({ ...node, position: direction === 'LR' ? { x: column*340, y: row*190 } : { x: row*340, y: column*190 } })));
 }
