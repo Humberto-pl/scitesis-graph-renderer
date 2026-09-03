@@ -10,12 +10,12 @@ export function buildDiagnosticGraphViewModel(candidate: CandidateArtifact, diag
   const add = (entity: CandidateArtifact['claims'][number], parentClaimId?: string) => {
     if (seen.has(entity.id)) return; seen.add(entity.id);
     const d = diagnosisById.get(entity.id);
-    rawNodes.push({ id: entity.id, canonicalId: entity.id, kind: entity.kind, label: entity.text ?? entity.id, text: entity.text, sourceRefs: [...(entity.sourceRefs ?? [])], state: d?.state, rules: [...(d?.rules ?? [])], supportPath: [...(d?.supportPath ?? [])], maximumDefendableClaim: d?.maximumDefendableClaim, isMaximumDefendable: d?.isMaximumDefendable ?? false, gravity:d?.gravity, reparability:d?.reparability, parentClaimId, collapseCapabilities: entity.kind === 'CLAIM' && entity.decomposition === 'COMPOSITE_SEPARABLE' ? ['subclaims'] : [] });
+    rawNodes.push({ id: entity.id, canonicalId: entity.id, kind: entity.kind, label: entity.text ?? entity.id, text: entity.text, sourceRefs: [...(entity.sourceRefs ?? [])], state: d?.state, rules: [...(d?.rules ?? [])], supportPath: [...(d?.supportPath ?? [])], maximumDefendableClaim: d?.maximumDefendableClaim, isMaximumDefendable: d?.isMaximumDefendable ?? false, gravity:d?.gravity, reparability:d?.reparability, parentClaimId, collapseCapabilities: entity.kind === 'CLAIM' && entity.composition_type === 'COMPOSITE_SEPARABLE' ? ['subclaims'] : [] });
   };
   candidate.claims.forEach(claim => {
     add(claim);
     // Only an explicit canonical decomposition permits subclaim nodes; legacy and indivisible claims remain atomic.
-    if (claim.decomposition === 'COMPOSITE_SEPARABLE') (claim.subclaims ?? []).forEach(sub => { add(sub, claim.id); edges.push({id:edgeId('DECOMPOSES_TO',claim.id,sub.id),source:claim.id,target:sub.id,kind:'DECOMPOSES_TO',label:'DECOMPOSES_TO'}); });
+    if (claim.composition_type === 'COMPOSITE_SEPARABLE') (claim.subclaims ?? []).forEach(sub => { add(sub, claim.id); edges.push({id:edgeId('DECOMPOSES_TO',claim.id,sub.id),source:claim.id,target:sub.id,kind:'DECOMPOSES_TO',label:'DECOMPOSES_TO'}); });
   });
   [...(candidate.entities ?? []), ...(diagnosis.entities ?? [])].forEach(entity => add(entity as CandidateArtifact['claims'][number]));
   const relations = [...(candidate.relations ?? []), ...(diagnosis.relations ?? [])];
