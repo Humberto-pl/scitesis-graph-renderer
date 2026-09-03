@@ -15,3 +15,17 @@ Herramienta interna React/TypeScript para inspeccionar `Candidate + Diagnosis`. 
 npm install
 npm run dev
 ```
+
+## Contrato de entrada
+
+El renderer consume el contrato canónico de `Candidate Schema v0.8` y `Diagnosis` sin alterar su semántica.
+
+Para claims, la composición canónica se representa mediante:
+
+- `composition_type`: `ATOMIC | COMPOSITE_SEPARABLE | COMPOSITE_INSEPARABLE`
+- `subclaims`: componentes explícitos del claim cuando corresponde
+- `aggregation_policy`: `NONE | COMPONENTWISE_RECOVERABLE`
+
+Solo un claim con `composition_type: COMPOSITE_SEPARABLE` habilita nodos `SUBCLAIM` y relaciones `DECOMPOSES_TO`. Los claims `ATOMIC` y `COMPOSITE_INSEPARABLE` permanecen indivisibles.
+
+La compatibilidad con Candidate v0.7 se mantiene para claims simples sin estos campos opcionales.
