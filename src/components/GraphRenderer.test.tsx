@@ -23,6 +23,56 @@ describe('GraphRenderer',()=>{
 });
 
 describe('GraphRenderer canonical simulator integration', () => {
+  it('starts with the full graph, exposes only instantiated semantic types, and resets accumulated filters', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const { container } = render(<GraphRenderer model={model} />);
+
+    expect(screen.getByText(`Nodes: ${model.nodes.length} / ${model.nodes.length} · Relations: ${model.edges.length} / ${model.edges.length}`)).toBeInTheDocument();
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
+    expect(screen.getByLabelText('Entity types: ENT-011')).toBeInTheDocument();
+    expect(screen.getByLabelText('Relation types: REL-067')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Entity types: ENT-002')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Entity types: ENT-011'));
+    const claimCount = model.nodes.filter(node => node.canonical_type === 'ENT-011').length;
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(claimCount);
+    expect(screen.getByText(new RegExp(`Nodes: ${claimCount} / ${model.nodes.length}`))).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Review state: CONFIRMED'));
+    expect(container.querySelectorAll('.react-flow__node').length).toBeLessThanOrEqual(claimCount);
+
+    fireEvent.click(screen.getByText('SHOW ALL / RESET FILTERS'));
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
+    expect(screen.getByText(`Nodes: ${model.nodes.length} / ${model.nodes.length} · Relations: ${model.edges.length} / ${model.edges.length}`)).toBeInTheDocument();
+  });
+
+  it('filters relations without hiding nodes and clears a selected object when it becomes invisible', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const relationCount = model.edges.filter(edge => edge.canonical_type === 'REL-067').length;
+    const { container } = render(<GraphRenderer model={model} />);
+
+    fireEvent.click(screen.getByText('Investigación doctoral QUALIS'));
+    expect(screen.getByText('INVESTIGAÇÃO', { selector: 'dd' })).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Relation types: REL-067'));
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
+    expect(screen.getByText(`Nodes: ${model.nodes.length} / ${model.nodes.length} · Relations: ${relationCount} / ${model.edges.length}`)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Entity types: ENT-011'));
+    expect(screen.getByText('Selecciona un nodo o una arista.')).toBeInTheDocument();
+  });
+
+  it('keeps inferential highlighting visibility-safe and auxiliary inspection artifact-complete', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const { container } = render(<GraphRenderer model={model} />);
+    fireEvent.click(screen.getByText('Inferencia hacia C-001'));
+    expect(screen.getByLabelText('Estructura inferencial')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Entity types: ENT-039'));
+    expect(container.querySelectorAll('.inference-step-node')).toHaveLength(7);
+    expect(screen.queryByLabelText('Roles de EV-001')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Literature'));
+    expect(screen.getByText('LU-001')).toBeInTheDocument();
+    expect(screen.getByText('FREIDSON (1998)')).toBeInTheDocument();
+  });
+
   it('renders the real QUALIS graph with canonical entities and no legacy diagnostic controls', () => {
     const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
 
@@ -32,8 +82,8 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(screen.getByText('Investigación doctoral QUALIS')).toBeInTheDocument();
     expect(screen.getByText('Inferencia hacia C-001')).toBeInTheDocument();
     expect(screen.getByText(/ENT-001 · INVESTIGAÇÃO/)).toBeInTheDocument();
-    expect(screen.getByText(/ENT-018 · CONCEPTUAL_ENTITY/)).toBeInTheDocument();
-    expect(screen.getByText(/ENT-039 · INFERENCE_STEP/)).toBeInTheDocument();
+    expect(screen.getAllByText(/ENT-018 · CONCEPTUAL_ENTITY/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/ENT-039 · INFERENCE_STEP/).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText('CLAIM')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('SUBCLAIM')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('EVIDENCE')).not.toBeInTheDocument();
@@ -111,10 +161,10 @@ describe('GraphRenderer canonical simulator integration', () => {
 
     expect(screen.getByText('ENT-001', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('INVESTIGAÇÃO', { selector: 'dd' })).toBeInTheDocument();
-    expect(screen.getByText('DIAGNOSTIC_SOURCE')).toBeInTheDocument();
-    expect(screen.getByText('SYSTEM_INFERRED')).toBeInTheDocument();
+    expect(screen.getByText('DIAGNOSTIC_SOURCE', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText('SYSTEM_INFERRED', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('literal-confidence')).toBeInTheDocument();
-    expect(screen.getByText('ABSTAIN')).toBeInTheDocument();
+    expect(screen.getByText('ABSTAIN', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('HUMAN')).toBeInTheDocument();
     expect(screen.getByText(/"instance": 7/)).toBeInTheDocument();
     expect(screen.queryByText('UNKNOWN')).not.toBeInTheDocument();
