@@ -6,7 +6,7 @@ import type {
 } from './types';
 
 function positionFor(index: number, direction: GraphOptions['direction']): SimulatorGraphNode['position'] {
-  return direction === 'TB' ? { x: index * 340, y: 0 } : { x: 0, y: index * 190 };
+  return direction === 'TB' ? { x: 0, y: index * 190 } : { x: index * 340, y: 0 };
 }
 
 export function buildCanonicalSimulatorGraphViewModel(

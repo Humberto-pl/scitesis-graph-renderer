@@ -84,6 +84,16 @@ describe('Canonical Simulator Graph Adapter', () => {
     expect(artifact).toEqual(snapshot);
   });
 
+  it('positions LR on the x axis and TB on the y axis', () => {
+    const leftToRight = buildCanonicalSimulatorGraphViewModel(artifact, { direction: 'LR' });
+    const topToBottom = buildCanonicalSimulatorGraphViewModel(artifact, { direction: 'TB' });
+
+    expect(new Set(leftToRight.nodes.map(node => node.position.x)).size).toBeGreaterThan(1);
+    expect(new Set(leftToRight.nodes.map(node => node.position.y))).toEqual(new Set([0]));
+    expect(new Set(topToBottom.nodes.map(node => node.position.y)).size).toBeGreaterThan(1);
+    expect(new Set(topToBottom.nodes.map(node => node.position.x))).toEqual(new Set([0]));
+  });
+
   it('fails explicitly rather than silently discarding a relation with a missing endpoint', () => {
     const invalidArtifact = structuredClone(artifact);
     invalidArtifact.relations[0].source_id = 'MISSING-ENTITY';
