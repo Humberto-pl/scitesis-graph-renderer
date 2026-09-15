@@ -55,6 +55,12 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(screen.getByText(/RELATION-001 · REL-067 \/ PREMISE_IN/)).toBeInTheDocument();
     expect(document.querySelectorAll('.dimmed').length).toBeGreaterThan(0);
     expect(screen.queryByText('RULE')).not.toBeInTheDocument();
+    expect(screen.getAllByText('IMPLICIT_RECONSTRUCTED', { selector: 'dd' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('PROBABLE', { selector: 'dd' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/"source_ref": "file_000000001044820e92b9958c291c2776"/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('AI', { selector: 'dd' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('v0.3-run-1', { selector: 'dd' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('RICH_SIMULATED_IAM', { selector: 'dd' }).length).toBeGreaterThan(0);
   });
 
   it('shows inferential roles as badges on existing canonical nodes', () => {
@@ -77,6 +83,44 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(screen.getByText('PREMISE_IN')).toBeInTheDocument();
     expect(screen.getByText('EV-001')).toBeInTheDocument();
     expect(screen.getByText('IS-001')).toBeInTheDocument();
+    expect(screen.getByText('IMPLICIT_RECONSTRUCTED')).toBeInTheDocument();
+    expect(screen.getByText('0.92')).toBeInTheDocument();
+    expect(screen.getByText('PROBABLE')).toBeInTheDocument();
+    expect(screen.getByText('AI')).toBeInTheDocument();
+    expect(screen.getByText('v0.3-run-1')).toBeInTheDocument();
+    expect(screen.getByText('RICH_SIMULATED_IAM')).toBeInTheDocument();
+    expect(screen.getByText(/"derivation": "Relación inferencial reconstruida"/)).toBeInTheDocument();
+  });
+
+  it('shows instance metadata literally, keeps ontology identity separate, and omits absent technical metadata', () => {
+    const artifact = structuredClone(qualisArtifact);
+    const entity = artifact.entities[0];
+    entity.epistemic_plane = 'DIAGNOSTIC_SOURCE';
+    entity.explicitness = 'SYSTEM_INFERRED';
+    entity.confidence = 'literal-confidence';
+    entity.review_state = 'ABSTAIN';
+    entity.origin = 'HUMAN';
+    entity.version = { instance: 7 };
+    delete entity.iam_source;
+    const snapshot = structuredClone(artifact);
+    const model = buildCanonicalSimulatorGraphViewModel(artifact);
+    const topology = { nodes: model.nodes.map(node => node.id), edges: model.edges.map(edge => [edge.source, edge.target]) };
+
+    render(<GraphRenderer model={model} />);
+    fireEvent.click(screen.getByText('Investigación doctoral QUALIS'));
+
+    expect(screen.getByText('ENT-001', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText('INVESTIGAÇÃO', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText('DIAGNOSTIC_SOURCE')).toBeInTheDocument();
+    expect(screen.getByText('SYSTEM_INFERRED')).toBeInTheDocument();
+    expect(screen.getByText('literal-confidence')).toBeInTheDocument();
+    expect(screen.getByText('ABSTAIN')).toBeInTheDocument();
+    expect(screen.getByText('HUMAN')).toBeInTheDocument();
+    expect(screen.getByText(/"instance": 7/)).toBeInTheDocument();
+    expect(screen.queryByText('UNKNOWN')).not.toBeInTheDocument();
+    expect(screen.queryByText('IAM source', { selector: 'dt' })).not.toBeInTheDocument();
+    expect({ nodes: model.nodes.map(node => node.id), edges: model.edges.map(edge => [edge.source, edge.target]) }).toEqual(topology);
+    expect(artifact).toEqual(snapshot);
   });
 
   it('is deterministic and does not mutate the canonical view model', () => {

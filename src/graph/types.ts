@@ -24,16 +24,30 @@ export interface SimulatorEntity {
   attributes: Record<string, unknown>;
   discourse_role: string | null;
   argumentative_role: string | null;
-  epistemic_plane: string;
+  epistemic_plane: string | null;
   explicitness: string;
-  confidence: number;
+  confidence: unknown;
   review_state: string;
   functional_relevance: string;
   projection_status: string;
-  provenance: unknown[];
-  origin: string;
-  version: string;
-  iam_source: string;
+  provenance: SimulatorProvenanceRef[];
+  origin?: string;
+  version?: unknown;
+  iam_source?: unknown;
+}
+
+/** A provenance entry is open to contract-compatible extensions; known fields are retained without normalization. */
+export interface SimulatorProvenanceRef {
+  source_ref?: string;
+  source_unit_id?: string | null;
+  source_span?: unknown;
+  location?: unknown;
+  page?: number | string | null;
+  section?: string | null;
+  literal?: string | null;
+  attribution: unknown;
+  derivation?: unknown;
+  [key: string]: unknown;
 }
 
 export interface SimulatorRelation {
@@ -44,13 +58,13 @@ export interface SimulatorRelation {
   target_id: string;
   attributes: Record<string, unknown>;
   explicitness: string;
-  confidence: number;
+  confidence: unknown;
   review_state: string;
   projection_status: string;
-  provenance: unknown[];
-  origin: string;
-  version: string;
-  iam_source: string;
+  provenance: SimulatorProvenanceRef[];
+  origin?: string;
+  version?: unknown;
+  iam_source?: unknown;
 }
 
 export interface SimulatorPremiseGroup {
@@ -59,10 +73,10 @@ export interface SimulatorPremiseGroup {
   member_ids: string[];
   target_inference_step_id: string;
   review_state: string;
-  provenance: unknown[];
-  origin: string;
-  version: string;
-  iam_source: string;
+  provenance: SimulatorProvenanceRef[];
+  origin?: string;
+  version?: unknown;
+  iam_source?: unknown;
 }
 
 export interface SimulatorInferenceStep {
@@ -76,10 +90,10 @@ export interface SimulatorInferenceStep {
   conclusion_id: string;
   explicitness: string;
   review_state: string;
-  provenance: unknown[];
-  origin: string;
-  version: string;
-  iam_source: string;
+  provenance: SimulatorProvenanceRef[];
+  origin?: string;
+  version?: unknown;
+  iam_source?: unknown;
 }
 
 export interface ConfirmedSimulatedGraphArtifact {
