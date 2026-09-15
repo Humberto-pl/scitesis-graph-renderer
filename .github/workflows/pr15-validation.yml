@@ -6,9 +6,6 @@ on:
       - codex/implementar-cargador-de-archivo-de-artifact
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -21,18 +18,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Capture full test output
-        run: |
-          set +e
-          npm test > ci-test-output.txt 2>&1
-          status=$?
-          cat ci-test-output.txt
-          echo "$status" > ci-test-status.txt
-          exit 0
-      - name: Commit diagnostic output
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci-test-output.txt ci-test-status.txt
-          git commit -m "ci: capture PR15 test output"
-          git push
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
