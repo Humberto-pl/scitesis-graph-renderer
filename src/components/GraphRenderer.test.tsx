@@ -23,6 +23,22 @@ describe('GraphRenderer',()=>{
 });
 
 describe('GraphRenderer canonical simulator integration', () => {
+  it('applies finite semantic positions, supports LR/TB, and exposes explicit reorganization without mutation', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const snapshot = structuredClone(model);
+    const { container } = render(<GraphRenderer model={model} />);
+    const renderedNodes = [...container.querySelectorAll<HTMLElement>('.react-flow__node')];
+    expect(renderedNodes).toHaveLength(model.nodes.length);
+    expect(renderedNodes.every(node => /translate\([^,]+px, ?[^)]+px\)/.test(node.style.transform))).toBe(true);
+    expect(screen.getByLabelText('LR')).toBeChecked();
+
+    fireEvent.click(screen.getByLabelText('TB'));
+    expect(screen.getByLabelText('TB')).toBeChecked();
+    fireEvent.click(screen.getByText('REORGANIZE GRAPH'));
+    expect([...container.querySelectorAll<HTMLElement>('.react-flow__node')].every(node => /translate\([^,]+px, ?[^)]+px\)/.test(node.style.transform))).toBe(true);
+    expect(model).toEqual(snapshot);
+  });
+
   it('starts with the full graph, exposes only instantiated semantic types, and resets accumulated filters', () => {
     const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
     const { container } = render(<GraphRenderer model={model} />);

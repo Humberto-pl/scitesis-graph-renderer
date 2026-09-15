@@ -4,13 +4,14 @@ import '@xyflow/react/dist/style.css';
 import type { CanonicalSimulatorGraphViewModel, GraphEdge, GraphNode, GraphViewModel, NodeKind, SimulatorGraphEdge, SimulatorGraphNode, SimulatorLiteratureUse, SimulatorOntologyGap, SimulatorProjectionGap, SimulatorReferenceBinding } from '../graph/types';
 import { NODE_KINDS } from '../graph/types';
 import { edgeDisplayLabel, nodeDisplayText, nodeKindDisplayLabel, stateDisplayLabel, withCanonicalCode } from '../graph/displayLabels';
-import { existingHighlightPath, initialLayoutState, moveNode, resetLayout } from '../graph/interaction';
+import { existingHighlightPath, initialLayoutState, layoutStateFromPositions, moveNode, resetLayout } from '../graph/interaction';
 import { createCanonicalDisplayEdges, createDisplayEdges } from '../graph/flowPresentation';
 import { inferentialRolesByEntity, inferenceStepView, type InferenceStepView, type InferentialRole } from '../graph/inferentialPresentation';
 import { canonicalEntityDisplayName, canonicalRelationDisplayName } from '../canonical/canonicalRegistry';
 import { artifactValue, provenanceValue } from '../graph/epistemicPresentation';
 import { computeCanonicalVisibility, deriveAvailableCanonicalFilters, isCanonicalFilterActive, resetCanonicalFilters, type AvailableCanonicalFilters, type CanonicalFilterDimension, type CanonicalVisibility, type CanonicalVisibilityFilterState } from '../graph/canonicalVisibility';
 import { computeCanonicalFocusVisibility, isCanonicalFocusActive, resetCanonicalFocus, type CanonicalFocusDepth, type CanonicalFocusDirection, type CanonicalFocusState } from '../graph/canonicalFocus';
+import { CANONICAL_LAYOUT_DEFAULT_DIRECTION, computeCanonicalLayout, type CanonicalLayoutDirection } from '../graph/canonicalLayout';
 
 const ignoreTransientNodeChanges = () => undefined;
 
@@ -34,6 +35,7 @@ export function GraphRenderer({ model }: { model: RendererModel }) {
   const [layout, setLayout] = useState(() => initialLayoutState(model));
   const [canonicalFilters, setCanonicalFilters] = useState<CanonicalVisibilityFilterState>(resetCanonicalFilters);
   const [canonicalFocus, setCanonicalFocus] = useState<CanonicalFocusState>(resetCanonicalFocus);
+  const [layoutDirection, setLayoutDirection] = useState<CanonicalLayoutDirection>(CANONICAL_LAYOUT_DEFAULT_DIRECTION);
   useEffect(() => { setLayout(initialLayoutState(model)); setSelected(undefined); setCollapsed(new Set()); setInspectorSection('graph'); setCanonicalFilters(resetCanonicalFilters()); setCanonicalFocus(resetCanonicalFocus()); }, [model]);
 
   const eligibleCanonicalVisibility = useMemo(() => isCanonicalModel(model)
@@ -45,6 +47,12 @@ export function GraphRenderer({ model }: { model: RendererModel }) {
   const availableCanonicalFilters = useMemo(() => isCanonicalModel(model)
     ? deriveAvailableCanonicalFilters(model)
     : undefined, [model]);
+  const semanticPositions = useMemo(() => isCanonicalModel(model) && canonicalVisibility
+    ? computeCanonicalLayout(model, canonicalVisibility, { direction: layoutDirection })
+    : undefined, [model, canonicalVisibility, layoutDirection]);
+  useEffect(() => {
+    if (semanticPositions) setLayout(layoutStateFromPositions(semanticPositions));
+  }, [semanticPositions]);
 
   const visible = useMemo(() => {
     if (isCanonicalModel(model)) return model.nodes.filter(node => canonicalVisibility!.visibleNodeIds.has(node.id));
@@ -110,10 +118,13 @@ export function GraphRenderer({ model }: { model: RendererModel }) {
     setCanonicalFilters(resetCanonicalFilters());
     setCanonicalFocus(resetCanonicalFocus());
   };
+  const reorganizeLayout = () => setLayout(isCanonicalModel(model) && semanticPositions
+    ? layoutStateFromPositions(semanticPositions)
+    : resetLayout(model));
   const selectedChildren = !canonical && selected && 'canonicalId' in selected ? model.nodes.filter(node => node.parentClaimId === selected.id) : [];
 
   return <main className="shell"><header><h1>SciTesis · Graph Renderer <small>v0.1.1</small></h1><p>{model.sourceCaseId} · {canonical ? 'inspección de grafo canónico' : 'inspección diagnóstica'}</p></header>
-    <section className="toolbar" aria-label="Filtros">{!canonical && <>{NODE_KINDS.map(kind => <label key={kind}><input type="checkbox" checked={kinds.has(kind)} onChange={() => toggleKind(kind)} />{kind}</label>)}<label><input type="checkbox" checked={problematic} onChange={e => setProblematic(e.target.checked)} />Solo claims problemáticos</label></>}<label><input type="checkbox" checked={showCodes} onChange={e => setShowCodes(e.target.checked)} />Mostrar códigos canónicos</label><button onClick={() => setLayout(resetLayout(model))}>Restablecer layout</button><button onClick={clearSelection} disabled={!selected}>Limpiar selección</button><button aria-expanded={!detailCollapsed} aria-controls="detail-panel" onClick={() => setDetailCollapsed(value => !value)}>{detailCollapsed ? 'Mostrar detalle' : 'Ocultar detalle'}</button></section>
+    <section className="toolbar" aria-label="Filtros">{!canonical && <>{NODE_KINDS.map(kind => <label key={kind}><input type="checkbox" checked={kinds.has(kind)} onChange={() => toggleKind(kind)} />{kind}</label>)}<label><input type="checkbox" checked={problematic} onChange={e => setProblematic(e.target.checked)} />Solo claims problemáticos</label></>}<label><input type="checkbox" checked={showCodes} onChange={e => setShowCodes(e.target.checked)} />Mostrar códigos canónicos</label>{canonical && <fieldset className="layout-direction"><legend>Layout</legend>{(['LR', 'TB'] as const).map(direction => <label key={direction}><input type="radio" name="canonical-layout-direction" value={direction} checked={layoutDirection === direction} onChange={() => setLayoutDirection(direction)} />{direction}</label>)}</fieldset>}<button onClick={reorganizeLayout}>{canonical ? 'REORGANIZE GRAPH' : 'Restablecer layout'}</button><button onClick={clearSelection} disabled={!selected}>Limpiar selección</button><button aria-expanded={!detailCollapsed} aria-controls="detail-panel" onClick={() => setDetailCollapsed(value => !value)}>{detailCollapsed ? 'Mostrar detalle' : 'Ocultar detalle'}</button></section>
     {canonical && availableCanonicalFilters && eligibleCanonicalVisibility && canonicalVisibility && <><CanonicalFilterPanel model={model} filters={canonicalFilters} available={availableCanonicalFilters} eligibleVisibility={eligibleCanonicalVisibility} visibility={canonicalVisibility} focusActive={isCanonicalFocusActive(canonicalFocus)} onChange={setCanonicalFilters} onReset={resetCanonicalPresentation} />
       <CanonicalFocusPanel focus={canonicalFocus} root={focusRoot} onChange={setCanonicalFocus} onExit={() => setCanonicalFocus(resetCanonicalFocus())} /></>}
     <div className={`workspace ${detailCollapsed ? 'detail-collapsed' : ''}`}><div className="canvas" data-testid="graph-canvas"><ReactFlow nodes={nodes} edges={edges} nodesConnectable={false} onConnect={undefined} onNodesChange={ignoreTransientNodeChanges} onNodeDragStop={(_, node) => setLayout(old => moveNode(old, node.id, node.position))} fitView onPaneClick={clearSelection} onNodeClick={(_, node) => setSelected(model.nodes.find(item => item.id === node.id))} onEdgeClick={(_, edge) => setSelected(model.edges.find(item => item.id === edge.id))}><Background /><Controls /><MiniMap /></ReactFlow><div className="legend" aria-label="Leyenda"><div className="legend-group"><b>Tipos</b>{canonical ? canonicalLegend.map(([type, name]) => <span key={type} className="legend-item"><span className="legend-swatch" aria-hidden="true" />{type} · {name}</span>) : legendKinds.map(kind => <span key={kind} className="legend-item"><span className="legend-swatch" aria-hidden="true" />{nodeKindDisplayLabel(kind)}</span>)}</div>{!canonical && <div className="legend-group"><b>Estado / énfasis</b><span className="legend-item"><span className="legend-swatch status-ok" aria-hidden="true" />Defendible</span><span className="legend-item"><span className="legend-swatch status-problem" aria-hidden="true" />Problemático/restringido</span><span className="legend-item maximum">★ Máximo defendible</span></div>}</div></div>
