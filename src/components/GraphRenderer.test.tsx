@@ -136,4 +136,97 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(firstNodeIds).toHaveLength(model.nodes.length);
     expect(model).toEqual(snapshot);
   });
+
+  it('inspects QUALIS literature literally, including review, provenance, and technical trace fields', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const snapshot = structuredClone(model);
+    render(<GraphRenderer model={model} />);
+    fireEvent.click(screen.getByText('Literature'));
+
+    expect(screen.getByText('LU-001')).toBeInTheDocument();
+    expect(screen.getByText('FREIDSON (1998)')).toBeInTheDocument();
+    expect(screen.getAllByText('NECESSARY').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('PARTIALLY_SUFFICIENT').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('NOT_EXTERNALLY_VERIFIED').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('CONFIRMED').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/"source_unit_id": "SU-P078"/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('AI').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('v0.3-run-1').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('RICH_SIMULATED_IAM').length).toBeGreaterThan(0);
+    expect(model).toEqual(snapshot);
+  });
+
+  it('keeps every reference status and candidate list visible without resolving a target', () => {
+    const input = structuredClone(qualisArtifact);
+    const provenance = input.reference_bindings[0].provenance;
+    input.reference_bindings = [
+      input.reference_bindings[0],
+      { binding_id: 'RB-A', source_object_id: 'C-001', reference_text: 'ambiguous ref', resolved_target_id: null, status: 'AMBIGUOUS', candidate_target_ids: ['CE-001', 'CE-002'], provenance },
+      { binding_id: 'RB-U', source_object_id: 'C-001', reference_text: 'unresolved ref', resolved_target_id: null, status: 'UNRESOLVED', candidate_target_ids: ['CE-003'], provenance },
+      { binding_id: 'RB-X', source_object_id: 'C-001', reference_text: 'abstained ref', resolved_target_id: null, status: 'ABSTAIN', candidate_target_ids: [], provenance },
+    ];
+    const snapshot = structuredClone(input);
+    render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(input)} />);
+    fireEvent.click(screen.getByText('References'));
+
+    for (const status of ['RESOLVED', 'AMBIGUOUS', 'UNRESOLVED', 'ABSTAIN']) expect(screen.getByText(status)).toBeInTheDocument();
+    expect(screen.getByText(/"CE-001",\s+"CE-002"/)).toBeInTheDocument();
+    expect(screen.getAllByText('null').length).toBeGreaterThanOrEqual(3);
+    expect(input).toEqual(snapshot);
+  });
+
+  it('shows ontology and projection gaps without adding nodes, edges, or mappings', () => {
+    const input = structuredClone(qualisArtifact);
+    input.ontology_gaps = [
+      { gap_id: 'OG-T', gap_type: 'ONTOLOGY_GAP', description: 'Blocking gap', source_refs: ['SU-1'], affected_object_ids: ['C-001'], blocking: true, review_state: 'UNRESOLVED' },
+      { gap_id: 'OG-F', gap_type: 'ONTOLOGY_GAP', description: 'Non-blocking gap', source_refs: [], affected_object_ids: ['RELATION-001'], blocking: false, review_state: 'UNRESOLVED' },
+    ];
+    input.projection_gaps = [{ projection_gap_id: 'PGAP-1', object_or_relation_id: 'C-001', target_contract: 'IAM v0.1', status: 'UNSUPPORTED_MAPPING', reason: 'Reported incompatibility' }];
+    const model = buildCanonicalSimulatorGraphViewModel(input);
+    const topology = { nodes: model.nodes.map(item => item.id), edges: model.edges.map(item => [item.source, item.target]) };
+    const { container } = render(<GraphRenderer model={model} />);
+    fireEvent.click(screen.getByText('Gaps'));
+
+    expect(screen.getByText('OG-T')).toBeInTheDocument();
+    expect(screen.getByText('OG-F')).toBeInTheDocument();
+    expect(screen.getByText('true')).toBeInTheDocument();
+    expect(screen.getByText('false')).toBeInTheDocument();
+    expect(screen.getByText(/"RELATION-001"/)).toBeInTheDocument();
+    expect(screen.getByText('UNSUPPORTED_MAPPING')).toBeInTheDocument();
+    expect(screen.getByText('IAM v0.1')).toBeInTheDocument();
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
+    expect({ nodes: model.nodes.map(item => item.id), edges: model.edges.map(item => [item.source, item.target]) }).toEqual(topology);
+  });
+
+  it.each(['PASS', 'FAIL', 'REVIEW_REQUIRED'] as const)('reports validation status %s literally without recalculation', status => {
+    const input = structuredClone(qualisArtifact);
+    input.validation.status = status;
+    if (status !== 'PASS') input.validation.conceptual_blockers = ['artifact-owned blocker'];
+    render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(input)} />);
+    fireEvent.click(screen.getByText('Validation'));
+
+    expect(screen.getByText(status)).toBeInTheDocument();
+    expect(screen.getByText(/"G1_CANON_COVERAGE_GATE": "PASS"/)).toBeInTheDocument();
+    if (status !== 'PASS') expect(screen.getByText(/artifact-owned blocker/)).toBeInTheDocument();
+  });
+
+  it('shows explicit empty states and does not expose canonical auxiliary UI on legacy models', () => {
+    const input = structuredClone(qualisArtifact);
+    input.literature_use = [];
+    input.reference_bindings = [];
+    input.ontology_gaps = [];
+    input.projection_gaps = [];
+    const { unmount } = render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(input)} />);
+    fireEvent.click(screen.getByText('Literature'));
+    expect(screen.getByText('No literature_use records reported.')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('References'));
+    expect(screen.getByText('No reference_bindings reported.')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Gaps'));
+    expect(screen.getByText('No ontology_gaps reported.')).toBeInTheDocument();
+    expect(screen.getByText('No projection_gaps reported.')).toBeInTheDocument();
+    unmount();
+
+    render(<GraphRenderer model={buildDiagnosticGraphViewModel(fixtures.C34.candidate, fixtures.C34.diagnosis)} />);
+    expect(screen.queryByLabelText('Inspección del artifact')).not.toBeInTheDocument();
+  });
 });

@@ -96,6 +96,74 @@ export interface SimulatorInferenceStep {
   iam_source?: unknown;
 }
 
+type SimulatorOrigin = 'AI' | 'RULE' | 'HUMAN';
+
+/** Auxiliary literature record. Open schema extensions remain available verbatim. */
+export interface SimulatorLiteratureUse {
+  literature_use_id: string;
+  citation: string | null;
+  source_unit_ids: string[];
+  used_for: unknown[];
+  target_entity_ids: string[];
+  necessity: 'NECESSARY' | 'USEFUL' | 'OPTIONAL' | 'NO_CLEAR_FUNCTION' | 'UNRESOLVED';
+  sufficiency: 'SUFFICIENT' | 'PARTIALLY_SUFFICIENT' | 'INSUFFICIENT' | 'NOT_ASSESSABLE';
+  authority: 'HIGH' | 'ADEQUATE' | 'QUESTIONABLE' | 'UNKNOWN' | 'NOT_EXTERNALLY_VERIFIED';
+  currency: unknown;
+  disciplinary_relevance: unknown;
+  epistemic_diversity_or_coverage: unknown;
+  review_state: string;
+  provenance: SimulatorProvenanceRef[];
+  origin?: SimulatorOrigin;
+  version?: unknown;
+  iam_source?: unknown;
+  [key: string]: unknown;
+}
+
+export interface SimulatorReferenceBinding {
+  binding_id: string;
+  source_object_id: string;
+  reference_text: string;
+  resolved_target_id: string | null;
+  status: 'RESOLVED' | 'AMBIGUOUS' | 'UNRESOLVED' | 'ABSTAIN';
+  candidate_target_ids: string[];
+  provenance: SimulatorProvenanceRef[];
+  origin?: SimulatorOrigin;
+  version?: unknown;
+  iam_source?: unknown;
+  [key: string]: unknown;
+}
+
+export interface SimulatorOntologyGap {
+  gap_id: string;
+  gap_type: 'ONTOLOGY_GAP';
+  description: string;
+  source_refs: unknown[];
+  affected_object_ids: string[];
+  blocking: boolean;
+  review_state: 'UNRESOLVED';
+  [key: string]: unknown;
+}
+
+export interface SimulatorProjectionGap {
+  projection_gap_id: string;
+  object_or_relation_id: string;
+  target_contract: string;
+  status: 'UNSUPPORTED_MAPPING';
+  reason: string;
+  [key: string]: unknown;
+}
+
+export interface SimulatorValidation {
+  status: 'PASS' | 'FAIL' | 'REVIEW_REQUIRED';
+  gate_status: Record<string, unknown>;
+  conceptual_blockers: unknown[];
+  open_review_items: unknown[];
+  ontology_gaps_open: unknown[];
+  projection_gaps: unknown[];
+  checks: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export interface ConfirmedSimulatedGraphArtifact {
   artifact_type: 'CONFIRMED_SIMULATED_GRAPH';
   contract_version: string;
@@ -107,11 +175,11 @@ export interface ConfirmedSimulatedGraphArtifact {
   relations: SimulatorRelation[];
   premise_groups: SimulatorPremiseGroup[];
   inference_steps: SimulatorInferenceStep[];
-  literature_use: unknown[];
-  reference_bindings: unknown[];
-  ontology_gaps: unknown[];
-  projection_gaps: unknown[];
-  validation: Record<string, unknown>;
+  literature_use: SimulatorLiteratureUse[];
+  reference_bindings: SimulatorReferenceBinding[];
+  ontology_gaps: SimulatorOntologyGap[];
+  projection_gaps: SimulatorProjectionGap[];
+  validation: SimulatorValidation;
 }
 
 export interface SimulatorGraphNode extends SimulatorEntity {
@@ -130,4 +198,9 @@ export type CanonicalSimulatorGraphViewModel = GraphViewModel<SimulatorGraphNode
   generatedDeterministically: true;
   premiseGroups: SimulatorPremiseGroup[];
   inferenceSteps: SimulatorInferenceStep[];
+  literatureUse: SimulatorLiteratureUse[];
+  referenceBindings: SimulatorReferenceBinding[];
+  ontologyGaps: SimulatorOntologyGap[];
+  projectionGaps: SimulatorProjectionGap[];
+  validation: SimulatorValidation;
 }>;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Background, Controls, MiniMap, ReactFlow, type Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { CanonicalSimulatorGraphViewModel, GraphEdge, GraphNode, GraphViewModel, NodeKind, SimulatorGraphEdge, SimulatorGraphNode } from '../graph/types';
+import type { CanonicalSimulatorGraphViewModel, GraphEdge, GraphNode, GraphViewModel, NodeKind, SimulatorGraphEdge, SimulatorGraphNode, SimulatorLiteratureUse, SimulatorOntologyGap, SimulatorProjectionGap, SimulatorReferenceBinding } from '../graph/types';
 import { NODE_KINDS } from '../graph/types';
 import { edgeDisplayLabel, nodeDisplayText, nodeKindDisplayLabel, stateDisplayLabel, withCanonicalCode } from '../graph/displayLabels';
 import { existingHighlightPath, initialLayoutState, moveNode, resetLayout } from '../graph/interaction';
@@ -15,6 +15,7 @@ const ignoreTransientNodeChanges = () => undefined;
 type LegacyGraphViewModel = GraphViewModel<GraphNode, GraphEdge>;
 type RendererModel = LegacyGraphViewModel | CanonicalSimulatorGraphViewModel;
 type SelectedItem = GraphNode | GraphEdge | SimulatorGraphNode | SimulatorGraphEdge;
+type InspectorSection = 'graph' | 'literature' | 'references' | 'gaps' | 'validation';
 
 const isCanonicalModel = (model: RendererModel): model is CanonicalSimulatorGraphViewModel =>
   model.metadata.adapterVersion === 'canonical-simulator-0.1';
@@ -27,8 +28,9 @@ export function GraphRenderer({ model }: { model: RendererModel }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [showCodes, setShowCodes] = useState(false);
   const [detailCollapsed, setDetailCollapsed] = useState(false);
+  const [inspectorSection, setInspectorSection] = useState<InspectorSection>('graph');
   const [layout, setLayout] = useState(() => initialLayoutState(model));
-  useEffect(() => { setLayout(initialLayoutState(model)); setSelected(undefined); setCollapsed(new Set()); }, [model]);
+  useEffect(() => { setLayout(initialLayoutState(model)); setSelected(undefined); setCollapsed(new Set()); setInspectorSection('graph'); }, [model]);
 
   const visible = useMemo(() => {
     if (isCanonicalModel(model)) return model.nodes;
@@ -76,7 +78,40 @@ export function GraphRenderer({ model }: { model: RendererModel }) {
   return <main className="shell"><header><h1>SciTesis · Graph Renderer <small>v0.1.1</small></h1><p>{model.sourceCaseId} · {canonical ? 'inspección de grafo canónico' : 'inspección diagnóstica'}</p></header>
     <section className="toolbar" aria-label="Filtros">{!canonical && <>{NODE_KINDS.map(kind => <label key={kind}><input type="checkbox" checked={kinds.has(kind)} onChange={() => toggleKind(kind)} />{kind}</label>)}<label><input type="checkbox" checked={problematic} onChange={e => setProblematic(e.target.checked)} />Solo claims problemáticos</label></>}<label><input type="checkbox" checked={showCodes} onChange={e => setShowCodes(e.target.checked)} />Mostrar códigos canónicos</label><button onClick={() => setLayout(resetLayout(model))}>Restablecer layout</button><button onClick={clearSelection} disabled={!selected}>Limpiar selección</button><button aria-expanded={!detailCollapsed} aria-controls="detail-panel" onClick={() => setDetailCollapsed(value => !value)}>{detailCollapsed ? 'Mostrar detalle' : 'Ocultar detalle'}</button></section>
     <div className={`workspace ${detailCollapsed ? 'detail-collapsed' : ''}`}><div className="canvas" data-testid="graph-canvas"><ReactFlow nodes={nodes} edges={edges} nodesConnectable={false} onConnect={undefined} onNodesChange={ignoreTransientNodeChanges} onNodeDragStop={(_, node) => setLayout(old => moveNode(old, node.id, node.position))} fitView onPaneClick={clearSelection} onNodeClick={(_, node) => setSelected(model.nodes.find(item => item.id === node.id))} onEdgeClick={(_, edge) => setSelected(model.edges.find(item => item.id === edge.id))}><Background /><Controls /><MiniMap /></ReactFlow><div className="legend" aria-label="Leyenda"><div className="legend-group"><b>Tipos</b>{canonical ? canonicalLegend.map(([type, name]) => <span key={type} className="legend-item"><span className="legend-swatch" aria-hidden="true" />{type} · {name}</span>) : legendKinds.map(kind => <span key={kind} className="legend-item"><span className="legend-swatch" aria-hidden="true" />{nodeKindDisplayLabel(kind)}</span>)}</div>{!canonical && <div className="legend-group"><b>Estado / énfasis</b><span className="legend-item"><span className="legend-swatch status-ok" aria-hidden="true" />Defendible</span><span className="legend-item"><span className="legend-swatch status-problem" aria-hidden="true" />Problemático/restringido</span><span className="legend-item maximum">★ Máximo defendible</span></div>}</div></div>
-      {!detailCollapsed && <aside id="detail-panel" aria-label="Detalle"><h2>Detalle</h2>{selected ? (isCanonicalNode(selected) ? <CanonicalNodeDetail node={selected} inference={selectedInference} /> : isCanonicalEdge(selected) ? <CanonicalEdgeDetail edge={selected} /> : 'canonicalId' in selected ? <NodeDetail node={selected} children={selectedChildren} /> : <EdgeDetail edge={selected} />) : <p>Selecciona un nodo o una arista.</p>}</aside>}</div></main>;
+      {!detailCollapsed && <aside id="detail-panel" aria-label="Detalle">{canonical && <InspectorNavigation selected={inspectorSection} onSelect={setInspectorSection} />}{!canonical || inspectorSection === 'graph' ? <><h2>Detalle</h2>{selected ? (isCanonicalNode(selected) ? <CanonicalNodeDetail node={selected} inference={selectedInference} /> : isCanonicalEdge(selected) ? <CanonicalEdgeDetail edge={selected} /> : 'canonicalId' in selected ? <NodeDetail node={selected} children={selectedChildren} /> : <EdgeDetail edge={selected} />) : <p>Selecciona un nodo o una arista.</p>}</> : <AuxiliaryInspector model={model} section={inspectorSection} />}</aside>}</div></main>;
+}
+
+function InspectorNavigation({ selected, onSelect }: { selected: InspectorSection; onSelect: (section: InspectorSection) => void }) {
+  const sections: Array<[InspectorSection, string]> = [['graph', 'Graph'], ['literature', 'Literature'], ['references', 'References'], ['gaps', 'Gaps'], ['validation', 'Validation']];
+  return <nav className="inspector-tabs" aria-label="Inspección del artifact">{sections.map(([section, label]) => <button key={section} className={selected === section ? 'active' : ''} aria-pressed={selected === section} onClick={() => onSelect(section)}>{label}</button>)}</nav>;
+}
+
+function AuxiliaryInspector({ model, section }: { model: CanonicalSimulatorGraphViewModel; section: Exclude<InspectorSection, 'graph'> }) {
+  if (section === 'literature') return <AuxiliaryList title="Literature use" empty="No literature_use records reported.">{model.metadata.literatureUse.map(item => <LiteratureDetail key={item.literature_use_id} item={item} />)}</AuxiliaryList>;
+  if (section === 'references') return <AuxiliaryList title="Reference bindings" empty="No reference_bindings reported.">{model.metadata.referenceBindings.map(item => <ReferenceBindingDetail key={item.binding_id} item={item} />)}</AuxiliaryList>;
+  if (section === 'gaps') return <><AuxiliaryList title="Ontology gaps" empty="No ontology_gaps reported.">{model.metadata.ontologyGaps.map(item => <OntologyGapDetail key={item.gap_id} item={item} />)}</AuxiliaryList><AuxiliaryList title="Projection gaps" empty="No projection_gaps reported.">{model.metadata.projectionGaps.map(item => <ProjectionGapDetail key={item.projection_gap_id} item={item} />)}</AuxiliaryList></>;
+  const validation = model.metadata.validation;
+  return <section className="auxiliary-section" aria-label="Validation"><h2>Validation</h2><dl><ArtifactItem title="Status" value={validation.status} /><ArtifactItem title="Gate status" value={validation.gate_status} structured /><ArtifactItem title="Conceptual blockers" value={validation.conceptual_blockers} structured /><ArtifactItem title="Open review items" value={validation.open_review_items} structured /><ArtifactItem title="Ontology gaps open" value={validation.ontology_gaps_open} structured /><ArtifactItem title="Projection gaps" value={validation.projection_gaps} structured /><ArtifactItem title="Checks" value={validation.checks} structured /></dl></section>;
+}
+
+function AuxiliaryList({ title, empty, children }: { title: string; empty: string; children: React.ReactNode[] }) {
+  return <section className="auxiliary-section" aria-label={title}><h2>{title}</h2>{children.length ? children : <p>{empty}</p>}</section>;
+}
+
+function LiteratureDetail({ item }: { item: SimulatorLiteratureUse }) {
+  return <article className="auxiliary-record"><h3>{item.literature_use_id}</h3><dl><ArtifactItem title="Citation" value={item.citation} /><ArtifactItem title="Source unit IDs" value={item.source_unit_ids} structured /><ArtifactItem title="Used for" value={item.used_for} structured /><ArtifactItem title="Target entity IDs" value={item.target_entity_ids} structured /><ArtifactItem title="Necessity" value={item.necessity} /><ArtifactItem title="Sufficiency" value={item.sufficiency} /><ArtifactItem title="Authority" value={item.authority} /><ArtifactItem title="Currency" value={item.currency} structured /><ArtifactItem title="Disciplinary relevance" value={item.disciplinary_relevance} /><ArtifactItem title="Epistemic diversity or coverage" value={item.epistemic_diversity_or_coverage} /><ArtifactItem title="Review state" value={item.review_state} /><ArtifactItem title="Origin" value={item.origin} /><ArtifactItem title="Version" value={item.version} /><ArtifactItem title="IAM source" value={item.iam_source} /><ArtifactItem title="Provenance" value={item.provenance} structured /></dl></article>;
+}
+
+function ReferenceBindingDetail({ item }: { item: SimulatorReferenceBinding }) {
+  return <article className="auxiliary-record"><h3>{item.binding_id}</h3><dl><ArtifactItem title="Source object ID" value={item.source_object_id} /><ArtifactItem title="Reference text" value={item.reference_text} /><ArtifactItem title="Resolved target ID" value={item.resolved_target_id} /><ArtifactItem title="Status" value={item.status} /><ArtifactItem title="Candidate target IDs" value={item.candidate_target_ids} structured /><ArtifactItem title="Origin" value={item.origin} /><ArtifactItem title="Version" value={item.version} /><ArtifactItem title="IAM source" value={item.iam_source} /><ArtifactItem title="Provenance" value={item.provenance} structured /></dl></article>;
+}
+
+function OntologyGapDetail({ item }: { item: SimulatorOntologyGap }) {
+  return <article className="auxiliary-record"><h3>{item.gap_id}</h3><dl><ArtifactItem title="Gap type" value={item.gap_type} /><ArtifactItem title="Description" value={item.description} /><ArtifactItem title="Source refs" value={item.source_refs} structured /><ArtifactItem title="Affected object IDs" value={item.affected_object_ids} structured /><ArtifactItem title="Blocking" value={item.blocking} /><ArtifactItem title="Review state" value={item.review_state} /></dl></article>;
+}
+
+function ProjectionGapDetail({ item }: { item: SimulatorProjectionGap }) {
+  return <article className="auxiliary-record"><h3>{item.projection_gap_id}</h3><dl><ArtifactItem title="Object or relation ID" value={item.object_or_relation_id} /><ArtifactItem title="Target contract" value={item.target_contract} /><ArtifactItem title="Status" value={item.status} /><ArtifactItem title="Reason" value={item.reason} /></dl></article>;
 }
 
 function Item({ title, children }: { title: string; children?: React.ReactNode }) { if (children === undefined || children === null || children === '') return null; return <><dt>{title}</dt><dd>{children}</dd></>; }
