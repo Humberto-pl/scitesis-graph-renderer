@@ -27,7 +27,7 @@ describe('GraphRenderer canonical simulator integration', () => {
     const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
     const { container } = render(<GraphRenderer model={model} />);
 
-    expect(screen.getByText(`Nodes: ${model.nodes.length} / ${model.nodes.length} · Relations: ${model.edges.length} / ${model.edges.length}`)).toBeInTheDocument();
+    expect(screen.getByText(`Nodes: ${model.nodes.length} visible / ${model.nodes.length} eligible / ${model.nodes.length} total · Relations: ${model.edges.length} visible / ${model.edges.length} eligible / ${model.edges.length} total`)).toBeInTheDocument();
     expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
     expect(screen.getByLabelText('Entity types: ENT-011')).toBeInTheDocument();
     expect(screen.getByLabelText('Relation types: REL-067')).toBeInTheDocument();
@@ -36,13 +36,88 @@ describe('GraphRenderer canonical simulator integration', () => {
     fireEvent.click(screen.getByLabelText('Entity types: ENT-011'));
     const claimCount = model.nodes.filter(node => node.canonical_type === 'ENT-011').length;
     expect(container.querySelectorAll('.react-flow__node')).toHaveLength(claimCount);
-    expect(screen.getByText(new RegExp(`Nodes: ${claimCount} / ${model.nodes.length}`))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`Nodes: ${claimCount} visible / ${claimCount} eligible / ${model.nodes.length} total`))).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText('Review state: CONFIRMED'));
     expect(container.querySelectorAll('.react-flow__node').length).toBeLessThanOrEqual(claimCount);
 
     fireEvent.click(screen.getByText('SHOW ALL / RESET FILTERS'));
     expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
-    expect(screen.getByText(`Nodes: ${model.nodes.length} / ${model.nodes.length} · Relations: ${model.edges.length} / ${model.edges.length}`)).toBeInTheDocument();
+    expect(screen.getByText(`Nodes: ${model.nodes.length} visible / ${model.nodes.length} eligible / ${model.nodes.length} total · Relations: ${model.edges.length} visible / ${model.edges.length} eligible / ${model.edges.length} total`)).toBeInTheDocument();
+  });
+
+  it('activates focus explicitly with depth one and both directions, then expands bounded depth', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const { container } = render(<GraphRenderer model={model} />);
+
+    fireEvent.click(screen.getByText('Inferencia hacia C-001'));
+    expect(screen.queryByText('FOCUS ACTIVE')).not.toBeInTheDocument();
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
+    fireEvent.click(screen.getByText('Focus on this node'));
+
+    expect(screen.getByText('FOCUS ACTIVE')).toBeInTheDocument();
+    expect(screen.getByText(/Root: Inferencia hacia C-001 \(IS-001\)/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Focus depth')).toHaveValue('1');
+    expect(screen.getByLabelText('Focus direction')).toHaveValue('both');
+    const depthOneCount = container.querySelectorAll('.react-flow__node').length;
+    expect(depthOneCount).toBeLessThan(model.nodes.length);
+
+    fireEvent.change(screen.getByLabelText('Focus depth'), { target: { value: '2' } });
+    const depthTwoCount = container.querySelectorAll('.react-flow__node').length;
+    expect(depthTwoCount).toBeGreaterThanOrEqual(depthOneCount);
+    fireEvent.change(screen.getByLabelText('Focus depth'), { target: { value: '3' } });
+    expect(container.querySelectorAll('.react-flow__node').length).toBeGreaterThanOrEqual(depthTwoCount);
+    fireEvent.change(screen.getByLabelText('Focus direction'), { target: { value: 'incoming' } });
+    expect(screen.getByLabelText('Focus direction')).toHaveValue('incoming');
+    fireEvent.change(screen.getByLabelText('Focus direction'), { target: { value: 'outgoing' } });
+    expect(screen.getByLabelText('Focus direction')).toHaveValue('outgoing');
+  });
+
+  it('exits focus without changing PR7A filters and global reset clears both layers', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const relationCount = model.edges.filter(edge => edge.canonical_type === 'REL-067').length;
+    const { container } = render(<GraphRenderer model={model} />);
+
+    fireEvent.click(screen.getByLabelText('Relation types: REL-067'));
+    fireEvent.click(screen.getByText('Inferencia hacia C-001'));
+    fireEvent.click(screen.getByText('Focus on this node'));
+    fireEvent.click(screen.getByText('EXIT FOCUS / SHOW ELIGIBLE GRAPH'));
+    expect(screen.queryByText('FOCUS ACTIVE')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Relation types: REL-067')).toBeChecked();
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
+    expect(screen.getByText(new RegExp(`Relations: ${relationCount} visible / ${relationCount} eligible`))).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Focus on this node'));
+    fireEvent.click(screen.getByText('SHOW ALL / RESET FILTERS'));
+    expect(screen.queryByText('FOCUS ACTIVE')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Relation types: REL-067')).not.toBeChecked();
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
+    expect(screen.getByText(new RegExp(`Relations: ${model.edges.length} visible / ${model.edges.length} eligible`))).toBeInTheDocument();
+  });
+
+  it('automatically exits focus and clears selection when PR7A makes its root ineligible', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    render(<GraphRenderer model={model} />);
+    fireEvent.click(screen.getByText('Investigación doctoral QUALIS'));
+    fireEvent.click(screen.getByText('Focus on this node'));
+    expect(screen.getByText('FOCUS ACTIVE')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Entity types: ENT-011'));
+    expect(screen.queryByText('FOCUS ACTIVE')).not.toBeInTheDocument();
+    expect(screen.getByText('Selecciona un nodo o una arista.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Entity types: ENT-011')).toBeChecked();
+  });
+
+  it('changes focus root only through the explicit action and keeps inferential highlighting visibility-safe', () => {
+    const { container } = render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
+    fireEvent.click(screen.getByText('Inferencia hacia C-001'));
+    fireEvent.click(screen.getByText('Focus on this node'));
+    const originalRoot = screen.getByText(/Root: Inferencia hacia C-001 \(IS-001\)/);
+    const otherNode = container.querySelector('.react-flow__node:not([data-id="IS-001"])') as HTMLElement;
+    fireEvent.click(otherNode);
+    expect(originalRoot).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Focus on this node'));
+    expect(screen.queryByText(/Root: Inferencia hacia C-001 \(IS-001\)/)).not.toBeInTheDocument();
+    expect(container.querySelectorAll('.react-flow__node.dimmed').length).toBe(0);
   });
 
   it('filters relations without hiding nodes and clears a selected object when it becomes invisible', () => {
@@ -54,7 +129,7 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(screen.getByText('INVESTIGAÇÃO', { selector: 'dd' })).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText('Relation types: REL-067'));
     expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
-    expect(screen.getByText(`Nodes: ${model.nodes.length} / ${model.nodes.length} · Relations: ${relationCount} / ${model.edges.length}`)).toBeInTheDocument();
+    expect(screen.getByText(`Nodes: ${model.nodes.length} visible / ${model.nodes.length} eligible / ${model.nodes.length} total · Relations: ${relationCount} visible / ${relationCount} eligible / ${model.edges.length} total`)).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Entity types: ENT-011'));
     expect(screen.getByText('Selecciona un nodo o una arista.')).toBeInTheDocument();
