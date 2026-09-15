@@ -45,3 +45,7 @@ graph. Selection never changes the root implicitly, and selection is cleared whe
 falls outside final visibility. Inferential highlighting is applied only to that final visible
 subset, while Literature, References, Gaps, and Validation continue to inspect the complete
 artifact.
+
+## Artifact import
+
+La aplicación acepta un único JSON local `CONFIRMED_SIMULATED_GRAPH`. Se valida sin transformarlo contra `docs/canonical-simulator/SCITESIS_CONCEPTUAL_SIMULATOR_OUTPUT_SCHEMA_v0.3.json`; después, el adapter comprueba sus precondiciones de construcción. Se procesa en memoria y un archivo rechazado no reemplaza el artifact visible.
