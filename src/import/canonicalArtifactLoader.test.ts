@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import outputSchema from '../../docs/canonical-simulator/SCITESIS_CONCEPTUAL_SIMULATOR_OUTPUT_SCHEMA_v0.3.json';
 import qualis from '../fixtures/simulator-v0.3/QUALIS/confirmed_simulated_graph.json';
+import type { ConfirmedSimulatedGraphArtifact } from '../graph/types';
 import { loadCanonicalArtifactFromText } from './canonicalArtifactLoader';
 
 const text = JSON.stringify(qualis);
@@ -47,7 +48,7 @@ describe('loadCanonicalArtifactFromText', () => {
   });
 
   it('preserves a schema-legitimate null without coercion', () => {
-    const value = structuredClone(qualis);
+    const value = structuredClone(qualis) as unknown as ConfirmedSimulatedGraphArtifact;
     value.entities[0].epistemic_plane = null;
     const result = loadCanonicalArtifactFromText(JSON.stringify(value));
     expect(result.ok).toBe(true);
