@@ -49,6 +49,8 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(screen.getByText('IS-001')).toBeInTheDocument();
     expect(screen.getByText('ENT-039', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('INFERENCE_STEP', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText('active', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText('Explicit inferential transition; not a claim.')).toBeInTheDocument();
     expect(screen.getByLabelText('Estructura inferencial')).toBeInTheDocument();
     expect(screen.getByText('PG-001 · grupo de premisas')).toBeInTheDocument();
     expect(screen.getByText('Miembros: EV-001, EV-002, EV-003')).toBeInTheDocument();
@@ -75,6 +77,7 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(screen.getByText('RELATION-001')).toBeInTheDocument();
     expect(screen.getByText('REL-067')).toBeInTheDocument();
     expect(screen.getByText('PREMISE_IN')).toBeInTheDocument();
+    expect(screen.getByText('active')).toBeInTheDocument();
     expect(screen.getByText('EV-001')).toBeInTheDocument();
     expect(screen.getByText('IS-001')).toBeInTheDocument();
   });

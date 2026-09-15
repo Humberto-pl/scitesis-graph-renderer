@@ -102,11 +102,13 @@ export interface ConfirmedSimulatedGraphArtifact {
 
 export interface SimulatorGraphNode extends SimulatorEntity {
   position: { x: number; y: number };
+  canonicalSemantics?: import('../canonical/canonicalEntityRegistry').CanonicalEntityRegistryEntry;
 }
 
 export interface SimulatorGraphEdge extends SimulatorRelation {
   source: string;
   target: string;
+  canonicalSemantics?: import('../canonical/canonicalRelationRegistry').CanonicalRelationRegistryEntry;
 }
 
 export type CanonicalSimulatorGraphViewModel = GraphViewModel<SimulatorGraphNode, SimulatorGraphEdge, {

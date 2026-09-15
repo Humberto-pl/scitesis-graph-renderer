@@ -4,6 +4,7 @@ import type {
   GraphOptions,
   SimulatorGraphNode,
 } from './types';
+import { canonicalEntitySemantics, canonicalRelationSemantics } from '../canonical/canonicalRegistry';
 
 function positionFor(index: number, direction: GraphOptions['direction']): SimulatorGraphNode['position'] {
   return direction === 'TB' ? { x: 0, y: index * 190 } : { x: index * 340, y: 0 };
@@ -28,11 +29,13 @@ export function buildCanonicalSimulatorGraphViewModel(
     nodes: artifact.entities.map((entity, index) => ({
       ...entity,
       position: positionFor(index, options.direction ?? 'LR'),
+      canonicalSemantics: canonicalEntitySemantics(entity.canonical_type),
     })),
     edges: artifact.relations.map(relation => ({
       ...relation,
       source: relation.source_id,
       target: relation.target_id,
+      canonicalSemantics: canonicalRelationSemantics(relation.canonical_type),
     })),
     metadata: {
       adapterVersion: 'canonical-simulator-0.1',
