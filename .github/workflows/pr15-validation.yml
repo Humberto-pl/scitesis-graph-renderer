@@ -18,30 +18,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Draft 2020-12 and QUALIS
-        continue-on-error: true
-        run: npx vitest run src/import/canonicalArtifactLoader.test.ts -t "uses the canonical Draft 2020-12 schema and accepts QUALIS without mutation"
-      - name: Invalid JSON
-        continue-on-error: true
-        run: npx vitest run src/import/canonicalArtifactLoader.test.ts -t "reports invalid JSON"
-      - name: Unsupported artifact type
-        continue-on-error: true
-        run: npx vitest run src/import/canonicalArtifactLoader.test.ts -t "rejects unsupported artifact types specifically"
-      - name: Required string violation
-        continue-on-error: true
-        run: npx vitest run src/import/canonicalArtifactLoader.test.ts -t "rejects required/string schema violations"
-      - name: Const violation
-        continue-on-error: true
-        run: npx vitest run src/import/canonicalArtifactLoader.test.ts -t "rejects a canonical const violation"
-      - name: Additional property violation
-        continue-on-error: true
-        run: npx vitest run src/import/canonicalArtifactLoader.test.ts -t "rejects unknown top-level properties"
-      - name: Legitimate null preservation
-        continue-on-error: true
-        run: npx vitest run src/import/canonicalArtifactLoader.test.ts -t "preserves a schema-legitimate null without coercion"
-      - name: File loader component tests
-        continue-on-error: true
-        run: npx vitest run src/components/ArtifactFileLoader.test.tsx
-      - name: App import integration tests
-        continue-on-error: true
-        run: npx vitest run src/App.test.tsx
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check HEAD^..HEAD
