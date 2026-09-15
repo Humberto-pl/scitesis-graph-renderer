@@ -39,9 +39,10 @@ export function createCanonicalDisplayEdges(
   edges: SimulatorGraphEdge[],
   visibleIds: ReadonlySet<string>,
   showCodes: boolean,
+  highlightedEdgeIds?: ReadonlySet<string>,
 ): Edge[] {
   return toDisplayEdges(edges, visibleIds, edge => {
     const canonicalEdge = edge as SimulatorGraphEdge;
     return withCanonicalCode(canonicalEdge.canonical_name, canonicalEdge.canonical_type, showCodes);
-  });
+  }, highlightedEdgeIds);
 }

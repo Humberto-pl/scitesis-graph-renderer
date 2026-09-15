@@ -39,6 +39,8 @@ export function buildCanonicalSimulatorGraphViewModel(
       sourceSchemaVersion: artifact.contract_version,
       sourceArtifactType: artifact.artifact_type,
       generatedDeterministically: true,
+      premiseGroups: artifact.premise_groups,
+      inferenceSteps: artifact.inference_steps,
     },
   };
 }

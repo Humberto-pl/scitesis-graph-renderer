@@ -49,7 +49,23 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(screen.getByText('IS-001')).toBeInTheDocument();
     expect(screen.getByText('ENT-039', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('INFERENCE_STEP', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Estructura inferencial')).toBeInTheDocument();
+    expect(screen.getByText('PG-001 · grupo de premisas')).toBeInTheDocument();
+    expect(screen.getByText('Miembros: EV-001, EV-002, EV-003')).toBeInTheDocument();
+    expect(screen.getByText(/RELATION-001 · REL-067 \/ PREMISE_IN/)).toBeInTheDocument();
+    expect(document.querySelectorAll('.dimmed').length).toBeGreaterThan(0);
     expect(screen.queryByText('RULE')).not.toBeInTheDocument();
+  });
+
+  it('shows inferential roles as badges on existing canonical nodes', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const { container } = render(<GraphRenderer model={model} />);
+
+    expect(screen.getByLabelText('Roles de EV-001')).toHaveTextContent('PREMISE');
+    expect(screen.getByLabelText('Roles de TA-001')).toHaveTextContent('WARRANT');
+    expect(screen.getByLabelText('Roles de A-001')).toHaveTextContent('ASSUMPTION');
+    expect(container.querySelectorAll('.react-flow__node')).toHaveLength(model.nodes.length);
+    expect(container.querySelectorAll('.inference-step-node')).toHaveLength(7);
   });
 
   it('inspects a canonical relation with its unchanged identity and endpoints', () => {
