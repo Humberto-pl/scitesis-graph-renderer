@@ -1,8 +1,25 @@
 # Canonical graph visibility
 
-The canonical renderer follows a one-way, two-layer presentation pipeline:
+The canonical renderer follows a one-way presentation pipeline:
 
-`FULL CanonicalSimulatorGraphViewModel → semantic filters → ELIGIBLE GRAPH → focus/neighborhood → VISIBLE GRAPH → React Flow`
+`FULL GRAPH → semantic filters → ELIGIBLE GRAPH → focus/neighborhood → VISIBLE GRAPH → semantic layout → React Flow`
+
+Semantic layout is presentation only: **layout != semantics, layout != topology, and layout !=
+filtering**. It receives the final visible node and relation ID sets and returns only session-local
+positions. It does not transform the artifact or ViewModel, manufacture nodes/relations, or decide
+eligibility or focus.
+
+Canonical layout defaults to left-to-right (`LR`) and also supports top-to-bottom (`TB`). It finds
+undirected connected components, orders them by descending size and minimum ID, derives
+topological-ish layers from actual relation direction with deterministic cycle breaking, and uses
+literal `epistemic_plane`, degree, `canonical_type`, and ID only as stable presentation heuristics.
+Null planes remain null in the artifact; “Unspecified” is solely the UI/layout label for that
+absence. Premise groups remain metadata rather than nodes, and ENT-039 remains an ordinary
+canonical node near its explicitly related inputs and conclusion through the existing topology.
+
+Visibility or direction changes recompute the complete visible layout once. Manual drag updates
+only the current session positions and is retained until visibility/direction changes or the user
+selects **REORGANIZE GRAPH**, which replaces manual positions with the current semantic layout.
 
 Filters never rebuild the artifact or ViewModel and never mutate nodes, edges, topology, or metadata. Within a dimension selected values use OR; active dimensions combine with AND. `review_state` and `explicitness` apply literally to both entities and relations, while `epistemic_plane` applies only to entities. A missing or null value does not match a specific active selection.
 

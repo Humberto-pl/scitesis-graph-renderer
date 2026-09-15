@@ -8,6 +8,9 @@ export const initialLayoutState = (model: PositionedModel): LayoutState => Objec
   model.nodes.map(node => [node.id, { ...node.position }]),
 );
 
+export const layoutStateFromPositions = (positions: ReadonlyMap<string, GraphNode['position']>): LayoutState =>
+  Object.fromEntries([...positions].map(([id, position]) => [id, { ...position }]));
+
 export const moveNode = (layout: LayoutState, id: string, position: GraphNode['position']): LayoutState =>
   layout[id] ? { ...layout, [id]: { ...position } } : layout;
 
