@@ -6,9 +6,6 @@ on:
       - codex/implementar-cargador-de-archivo-de-artifact
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -20,19 +17,15 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Regenerate package lock for declared dependencies
-        run: npm install --package-lock-only --ignore-scripts
-      - name: Commit regenerated lockfile when needed
-        run: |
-          if ! git diff --quiet -- package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "chore: refresh lockfile for AJV 8"
-            git push
-          fi
       - run: npm ci
-      - run: npm test
+      - name: Loader unit tests
+        run: npx vitest run src/import/canonicalArtifactLoader.test.ts
+      - name: File loader component tests
+        run: npx vitest run src/components/ArtifactFileLoader.test.tsx
+      - name: App import integration tests
+        run: npx vitest run src/App.test.tsx
+      - name: Full test suite
+        run: npm test
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
