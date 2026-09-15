@@ -86,6 +86,45 @@ describe('Canonical Simulator Graph Adapter', () => {
     expect(artifact).toEqual(snapshot);
   });
 
+  it('passes every auxiliary structure through losslessly without changing topology', () => {
+    const input = structuredClone(artifact);
+    input.ontology_gaps = [{
+      gap_id: 'OG-TEST', gap_type: 'ONTOLOGY_GAP', description: 'Reported gap', source_refs: ['SU-X'],
+      affected_object_ids: ['C-001'], blocking: false, review_state: 'UNRESOLVED', extension: { retained: true },
+    }];
+    input.projection_gaps = [{
+      projection_gap_id: 'PGAP-TEST', object_or_relation_id: 'C-001', target_contract: 'IAM v0.1',
+      status: 'UNSUPPORTED_MAPPING', reason: 'No mapping', extension: ['retained'],
+    }];
+    const snapshot = structuredClone(input);
+    const topology = { nodes: input.entities.map(item => item.id), edges: input.relations.map(item => [item.source_id, item.target_id]) };
+    const model = buildCanonicalSimulatorGraphViewModel(input);
+
+    expect(model.metadata.literatureUse).toBe(input.literature_use);
+    expect(model.metadata.referenceBindings).toBe(input.reference_bindings);
+    expect(model.metadata.ontologyGaps).toBe(input.ontology_gaps);
+    expect(model.metadata.projectionGaps).toBe(input.projection_gaps);
+    expect(model.metadata.validation).toBe(input.validation);
+    expect({ nodes: model.nodes.map(item => item.id), edges: model.edges.map(item => [item.source, item.target]) }).toEqual(topology);
+    expect(input).toEqual(snapshot);
+  });
+
+  it('preserves empty auxiliary arrays and does not default absent optional record fields', () => {
+    const input = structuredClone(artifact);
+    input.literature_use = [];
+    input.reference_bindings = [];
+    input.ontology_gaps = [];
+    input.projection_gaps = [];
+    delete input.validation.experimental_sidecar;
+    const model = buildCanonicalSimulatorGraphViewModel(input);
+
+    expect(model.metadata.literatureUse).toEqual([]);
+    expect(model.metadata.referenceBindings).toEqual([]);
+    expect(model.metadata.ontologyGaps).toEqual([]);
+    expect(model.metadata.projectionGaps).toEqual([]);
+    expect(model.metadata.validation).not.toHaveProperty('experimental_sidecar');
+  });
+
   it('positions LR on the x axis and TB on the y axis', () => {
     const leftToRight = buildCanonicalSimulatorGraphViewModel(artifact, { direction: 'LR' });
     const topToBottom = buildCanonicalSimulatorGraphViewModel(artifact, { direction: 'TB' });

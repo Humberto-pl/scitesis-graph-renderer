@@ -41,6 +41,11 @@ export function buildCanonicalSimulatorGraphViewModel(
       generatedDeterministically: true,
       premiseGroups: artifact.premise_groups,
       inferenceSteps: artifact.inference_steps,
+      literatureUse: artifact.literature_use,
+      referenceBindings: artifact.reference_bindings,
+      ontologyGaps: artifact.ontology_gaps,
+      projectionGaps: artifact.projection_gaps,
+      validation: artifact.validation,
     },
   };
 }
