@@ -83,5 +83,5 @@ export function loadCanonicalArtifactFromText(text: string): ArtifactLoadResult 
     };
   }
 
-  return { ok: true, artifact: parsed as ConfirmedSimulatedGraphArtifact };
+  return { ok: true, artifact: parsed as unknown as ConfirmedSimulatedGraphArtifact };
 }
