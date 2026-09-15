@@ -1,0 +1,24 @@
+name: PR15 final check
+
+on:
+  push:
+    branches:
+      - codex/implementar-cargador-de-archivo-de-artifact
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/implementar-cargador-de-archivo-de-artifact
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
