@@ -26,6 +26,10 @@ describe('GraphRenderer canonical simulator integration', () => {
   it('keeps the compact filter section expandable and the workspace controls accessible', () => {
     render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
 
+    const canvas = screen.getByTestId('graph-canvas');
+    const toolbar = screen.getByRole('region', { name: 'Controles del grafo' });
+    expect(canvas).toContainElement(toolbar);
+    expect(toolbar).toContainElement(screen.getByLabelText('Mostrar códigos canónicos'));
     const filters = screen.getByText('Filters').closest('details');
     expect(filters).not.toHaveAttribute('open');
     fireEvent.click(screen.getByText('Filters'));
@@ -35,6 +39,17 @@ describe('GraphRenderer canonical simulator integration', () => {
     for (const tab of ['Graph', 'Literature', 'References', 'Gaps', 'Validation']) {
       expect(screen.getByRole('button', { name: tab })).toBeInTheDocument();
     }
+  });
+
+  it('keeps selection when using presentation controls in the canvas toolbar', () => {
+    render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
+
+    fireEvent.click(screen.getByText('Investigación doctoral QUALIS'));
+    expect(screen.getByText('INVESTIGAÇÃO', { selector: 'dd' })).toBeInTheDocument();
+    fireEvent.pointerDown(screen.getByLabelText('Mostrar códigos canónicos'));
+    fireEvent.click(screen.getByLabelText('Mostrar códigos canónicos'));
+    expect(screen.getByText('INVESTIGAÇÃO', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText('Limpiar selección')).toBeEnabled();
   });
 
   it('applies finite semantic positions, supports LR/TB, and exposes explicit reorganization without mutation', () => {

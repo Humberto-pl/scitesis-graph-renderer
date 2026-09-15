@@ -35,3 +35,10 @@
 .artifact-loader [role=alert] p{display:inline;margin:0 6px}
 .artifact-loader [role=alert] ul{margin:4px 0 0}
 @media(max-width:700px){#root{overflow:auto}.workspace-header{align-items:flex-start}.artifact-identity{order:3;flex-basis:100%;padding-left:0;border-left:0}.artifact-loader{margin-left:0}.local-processing{display:none}.shell>.workspace{min-height:620px;grid-template-columns:minmax(0,1fr)}}
+
+
+/* PR9B graph controls overlay */
+.graph-toolbar{position:absolute;z-index:10;top:12px;left:12px;display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;max-width:calc(100% - 24px);padding:6px 8px;background:rgba(255,255,255,.94);border:1px solid #bbc3cf;border-radius:5px;box-shadow:0 2px 8px #18223024;font-size:12px}
+.graph-toolbar label{display:flex;align-items:center;gap:4px}
+.graph-toolbar button{min-height:26px;padding:5px 9px}
+.graph-toolbar :focus-visible{outline:2px solid var(--graph-accent);outline-offset:2px}
