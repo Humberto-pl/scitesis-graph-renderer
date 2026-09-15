@@ -12,7 +12,15 @@ const artifactFile = (artifact: unknown, name: string) => ({
 describe('App artifact import integration', () => {
   it('keeps the previous artifact visible after schema validation fails', async () => {
     render(<App />);
-    expect(screen.getByText('Artifact cargado: QUALIS (ejemplo incluido)')).toBeInTheDocument();
+    expect(screen.getByText('QUALIS · ejemplo incluido')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'SciTesis · Graph Renderer' })).toBeInTheDocument();
+    expect(screen.getByText('Detalles')).toBeInTheDocument();
+    expect(screen.getByLabelText('Cargar artifact JSON')).toBeInTheDocument();
+    const details = screen.getByText('Detalles').closest('details');
+    expect(details).not.toHaveAttribute('open');
+    fireEvent.click(screen.getByText('Detalles'));
+    expect(details).toHaveAttribute('open');
+    expect(screen.getByText('contract_version')).toBeInTheDocument();
 
     const invalid = { ...qualis, case_id: '' };
     fireEvent.change(screen.getByLabelText('Cargar artifact JSON'), {
@@ -20,8 +28,8 @@ describe('App artifact import integration', () => {
     });
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('SCHEMA_VALIDATION_FAILED'));
-    expect(screen.getByText('Artifact cargado: QUALIS (ejemplo incluido)')).toBeInTheDocument();
-    expect(screen.getByText(`case_id: ${qualis.case_id}`)).toBeInTheDocument();
+    expect(screen.getByText('QUALIS · ejemplo incluido')).toBeInTheDocument();
+    expect(screen.getByText(qualis.case_id)).toBeInTheDocument();
   });
 
   it('replaces the artifact and clears a previous error after a later valid load', async () => {
@@ -36,9 +44,9 @@ describe('App artifact import integration', () => {
     const valid = { ...qualis, case_id: 'QUALIS-RELOADED', execution_id: 'EXEC-RELOADED' };
     fireEvent.change(input, { target: { files: [artifactFile(valid, 'valid.json')] } });
 
-    await waitFor(() => expect(screen.getByText('Artifact cargado: valid.json')).toBeInTheDocument());
-    expect(screen.getByText('case_id: QUALIS-RELOADED')).toBeInTheDocument();
-    expect(screen.getByText('execution_id: EXEC-RELOADED')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('valid.json')).toBeInTheDocument());
+    expect(screen.getByText('QUALIS-RELOADED')).toBeInTheDocument();
+    expect(screen.getByText('EXEC-RELOADED')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
@@ -53,7 +61,7 @@ describe('App artifact import integration', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('ADAPTER_REJECTED_ARTIFACT'));
     expect(screen.getByRole('alert')).toHaveTextContent('missing endpoint');
-    expect(screen.getByText('Artifact cargado: QUALIS (ejemplo incluido)')).toBeInTheDocument();
-    expect(screen.getByText(`case_id: ${qualis.case_id}`)).toBeInTheDocument();
+    expect(screen.getByText('QUALIS · ejemplo incluido')).toBeInTheDocument();
+    expect(screen.getByText(qualis.case_id)).toBeInTheDocument();
   });
 });

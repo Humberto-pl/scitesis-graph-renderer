@@ -23,6 +23,20 @@ describe('GraphRenderer',()=>{
 });
 
 describe('GraphRenderer canonical simulator integration', () => {
+  it('keeps the compact filter section expandable and the workspace controls accessible', () => {
+    render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
+
+    const filters = screen.getByText('Filters').closest('details');
+    expect(filters).not.toHaveAttribute('open');
+    fireEvent.click(screen.getByText('Filters'));
+    expect(filters).toHaveAttribute('open');
+    expect(screen.getByLabelText('LR')).toBeInTheDocument();
+    expect(screen.getByLabelText('TB')).toBeInTheDocument();
+    for (const tab of ['Graph', 'Literature', 'References', 'Gaps', 'Validation']) {
+      expect(screen.getByRole('button', { name: tab })).toBeInTheDocument();
+    }
+  });
+
   it('applies finite semantic positions, supports LR/TB, and exposes explicit reorganization without mutation', () => {
     const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
     const snapshot = structuredClone(model);
