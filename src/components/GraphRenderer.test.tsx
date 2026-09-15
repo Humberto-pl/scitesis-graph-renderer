@@ -1,8 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { fixtures } from '../fixtures/cases';
+import qualisArtifactJson from '../fixtures/simulator-v0.3/QUALIS/confirmed_simulated_graph.json';
 import { buildDiagnosticGraphViewModel } from '../graph/adapter';
-import { GraphRenderer } from './GraphRenderer';
+import { buildCanonicalSimulatorGraphViewModel } from '../graph/canonicalSimulatorAdapter';
+import type { ConfirmedSimulatedGraphArtifact } from '../graph/types';
+import { CanonicalEdgeDetail, GraphRenderer } from './GraphRenderer';
+
+const qualisArtifact = qualisArtifactJson as ConfirmedSimulatedGraphArtifact;
 describe('GraphRenderer',()=>{
   it.each(['C34','C30','C36','ADV-WI01-15'])('renders %s without errors',id=>{render(<GraphRenderer model={buildDiagnosticGraphViewModel(fixtures[id].candidate,fixtures[id].diagnosis)}/>);expect(screen.getByTestId('graph-canvas')).toBeInTheDocument();expect(screen.getByTitle('Fit View')).toBeInTheDocument()});
   it('selects and filters nodes',()=>{render(<GraphRenderer model={buildDiagnosticGraphViewModel(fixtures.C34.candidate,fixtures.C34.diagnosis)}/>);fireEvent.click(screen.getByText('Entre 30% y 40% de la PEA de Madre de Dios se dedica directamente a la minería.'));expect(screen.getByText('C34-C09-A')).toBeInTheDocument();fireEvent.click(screen.getByLabelText('EVIDENCE'));expect(screen.getByLabelText('EVIDENCE')).not.toBeChecked();fireEvent.click(screen.getByLabelText('Solo claims problemáticos'));expect(screen.getByLabelText('Solo claims problemáticos')).toBeChecked()});
@@ -15,4 +20,60 @@ describe('GraphRenderer',()=>{
   it('renders target arrow markers on canonical edges',()=>{const model=buildDiagnosticGraphViewModel(fixtures.C30.candidate,fixtures.C30.diagnosis);render(<GraphRenderer model={model}/>);expect(document.querySelector('.react-flow__arrowhead')).toBeInTheDocument()});
 
   it('collapses and restores the detail panel without losing selection or mutating the model',()=>{const model=buildDiagnosticGraphViewModel(fixtures.C34.candidate,fixtures.C34.diagnosis);const before=structuredClone(model);render(<GraphRenderer model={model}/>);fireEvent.click(screen.getByText('Entre 30% y 40% de la PEA de Madre de Dios se dedica directamente a la minería.'));expect(screen.getByText('C34-C09-A')).toBeInTheDocument();fireEvent.click(screen.getByText('Ocultar detalle'));expect(screen.queryByLabelText('Detalle')).not.toBeInTheDocument();expect(screen.getByText('Mostrar detalle')).toHaveAttribute('aria-expanded','false');fireEvent.click(screen.getByText('Mostrar detalle'));expect(screen.getByLabelText('Detalle')).toBeInTheDocument();expect(screen.getByText('C34-C09-A')).toBeInTheDocument();expect(model).toEqual(before)});
+});
+
+describe('GraphRenderer canonical simulator integration', () => {
+  it('renders the real QUALIS graph with canonical entities and no legacy diagnostic controls', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+
+    render(<GraphRenderer model={model} />);
+
+    expect(screen.getByTestId('graph-canvas')).toBeInTheDocument();
+    expect(screen.getByText('Investigación doctoral QUALIS')).toBeInTheDocument();
+    expect(screen.getByText('Inferencia hacia C-001')).toBeInTheDocument();
+    expect(screen.getByText(/ENT-001 · INVESTIGAÇÃO/)).toBeInTheDocument();
+    expect(screen.getByText(/ENT-018 · CONCEPTUAL_ENTITY/)).toBeInTheDocument();
+    expect(screen.getByText(/ENT-039 · INFERENCE_STEP/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('CLAIM')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('SUBCLAIM')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('EVIDENCE')).not.toBeInTheDocument();
+    expect(screen.queryByText('Solo claims problemáticos')).not.toBeInTheDocument();
+    expect(screen.queryByText('RULE')).not.toBeInTheDocument();
+  });
+
+  it('inspects canonical nodes and keeps ENT-039 unchanged', () => {
+    render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
+
+    fireEvent.click(screen.getByText('Inferencia hacia C-001'));
+
+    expect(screen.getByText('IS-001')).toBeInTheDocument();
+    expect(screen.getByText('ENT-039', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText('INFERENCE_STEP', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.queryByText('RULE')).not.toBeInTheDocument();
+  });
+
+  it('inspects a canonical relation with its unchanged identity and endpoints', () => {
+    const edge = buildCanonicalSimulatorGraphViewModel(qualisArtifact).edges.find(item => item.id === 'RELATION-001')!;
+    render(<CanonicalEdgeDetail edge={edge} />);
+
+    expect(screen.getByText('RELATION-001')).toBeInTheDocument();
+    expect(screen.getByText('REL-067')).toBeInTheDocument();
+    expect(screen.getByText('PREMISE_IN')).toBeInTheDocument();
+    expect(screen.getByText('EV-001')).toBeInTheDocument();
+    expect(screen.getByText('IS-001')).toBeInTheDocument();
+  });
+
+  it('is deterministic and does not mutate the canonical view model', () => {
+    const model = buildCanonicalSimulatorGraphViewModel(qualisArtifact);
+    const snapshot = structuredClone(model);
+    const first = render(<GraphRenderer model={model} />);
+    const firstNodeIds = [...first.container.querySelectorAll('.react-flow__node')].map(node => node.getAttribute('data-id'));
+    first.unmount();
+    const second = render(<GraphRenderer model={model} />);
+    const secondNodeIds = [...second.container.querySelectorAll('.react-flow__node')].map(node => node.getAttribute('data-id'));
+
+    expect(secondNodeIds).toEqual(firstNodeIds);
+    expect(firstNodeIds).toHaveLength(model.nodes.length);
+    expect(model).toEqual(snapshot);
+  });
 });

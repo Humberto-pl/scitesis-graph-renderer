@@ -1,6 +1,25 @@
 import { MarkerType, type Edge } from '@xyflow/react';
 import { edgeDisplayLabel, withCanonicalCode } from './displayLabels';
-import type { GraphEdge } from './types';
+import type { GraphEdge, SimulatorGraphEdge } from './types';
+
+type DisplayableEdge = Pick<GraphEdge, 'id' | 'source' | 'target'>;
+
+function toDisplayEdges(
+  edges: DisplayableEdge[],
+  visibleIds: ReadonlySet<string>,
+  labelFor: (edge: DisplayableEdge) => string,
+  highlightedEdgeIds?: ReadonlySet<string>,
+): Edge[] {
+  return edges.filter(edge => visibleIds.has(edge.source) && visibleIds.has(edge.target)).map(edge => ({
+    id: edge.id,
+    source: edge.source,
+    target: edge.target,
+    label: labelFor(edge),
+    type: 'smoothstep',
+    markerEnd: { type: MarkerType.ArrowClosed },
+    className: highlightedEdgeIds && !highlightedEdgeIds.has(edge.id) ? 'dimmed' : highlightedEdgeIds ? 'highlighted' : '',
+  }));
+}
 
 /** Maps canonical edges to visual edges without changing identity or topology. */
 export function createDisplayEdges(
@@ -9,13 +28,20 @@ export function createDisplayEdges(
   showCodes: boolean,
   highlightedEdgeIds?: ReadonlySet<string>,
 ): Edge[] {
-  return edges.filter(edge => visibleIds.has(edge.source) && visibleIds.has(edge.target)).map(edge => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    label: withCanonicalCode(edgeDisplayLabel(edge.kind), edge.kind, showCodes),
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed },
-    className: highlightedEdgeIds && !highlightedEdgeIds.has(edge.id) ? 'dimmed' : highlightedEdgeIds ? 'highlighted' : '',
-  }));
+  return toDisplayEdges(edges, visibleIds, edge => {
+    const legacyEdge = edge as GraphEdge;
+    return withCanonicalCode(edgeDisplayLabel(legacyEdge.kind), legacyEdge.kind, showCodes);
+  }, highlightedEdgeIds);
+}
+
+/** Creates React Flow edges while retaining the canonical relation vocabulary and topology. */
+export function createCanonicalDisplayEdges(
+  edges: SimulatorGraphEdge[],
+  visibleIds: ReadonlySet<string>,
+  showCodes: boolean,
+): Edge[] {
+  return toDisplayEdges(edges, visibleIds, edge => {
+    const canonicalEdge = edge as SimulatorGraphEdge;
+    return withCanonicalCode(canonicalEdge.canonical_name, canonicalEdge.canonical_type, showCodes);
+  });
 }
