@@ -11,5 +11,78 @@ export interface DiagnosisEntry { subjectId: string; state?: DiagnosticState; ru
 export interface DiagnosisArtifact { caseId?: string; entries?: DiagnosisEntry[]; entities?: CanonicalEntity[]; relations?: CanonicalRelation[] }
 export interface GraphNode { id: string; canonicalId: string; kind: NodeKind; label: string; text?: string; state?: DiagnosticState; rules: string[]; supportPath: string[]; sourceRefs: string[]; maximumDefendableClaim?: string; isMaximumDefendable: boolean; gravity?: string; reparability?: string; parentClaimId?: string; position: { x: number; y: number }; collapseCapabilities: Array<'subclaims'|'evidence'> }
 export interface GraphEdge { id: string; source: string; target: string; kind: EdgeKind; label: string }
-export interface GraphViewModel { graphId: string; sourceCaseId: string; nodes: GraphNode[]; edges: GraphEdge[]; metadata: { adapterVersion: '0.1'; sourceSchemaVersion: string; generatedDeterministically: true } }
+export interface GraphViewModel<Node = GraphNode, Edge = GraphEdge, Metadata = { adapterVersion: '0.1'; sourceSchemaVersion: string; generatedDeterministically: true }> { graphId: string; sourceCaseId: string; nodes: Node[]; edges: Edge[]; metadata: Metadata }
 export interface GraphOptions { direction?: 'LR'|'TB' }
+
+export interface SimulatorEntity {
+  id: string;
+  canonical_type: string;
+  canonical_name: string;
+  subtype: string | null;
+  label: string;
+  text: string;
+  attributes: Record<string, unknown>;
+  discourse_role: string | null;
+  argumentative_role: string | null;
+  epistemic_plane: string;
+  explicitness: string;
+  confidence: number;
+  review_state: string;
+  functional_relevance: string;
+  projection_status: string;
+  provenance: unknown[];
+  origin: string;
+  version: string;
+  iam_source: string;
+}
+
+export interface SimulatorRelation {
+  id: string;
+  canonical_type: string;
+  canonical_name: string;
+  source_id: string;
+  target_id: string;
+  attributes: Record<string, unknown>;
+  explicitness: string;
+  confidence: number;
+  review_state: string;
+  projection_status: string;
+  provenance: unknown[];
+  origin: string;
+  version: string;
+  iam_source: string;
+}
+
+export interface ConfirmedSimulatedGraphArtifact {
+  artifact_type: 'CONFIRMED_SIMULATED_GRAPH';
+  contract_version: string;
+  case_id: string;
+  execution_id: string;
+  source_document: Record<string, unknown>;
+  execution: Record<string, unknown>;
+  entities: SimulatorEntity[];
+  relations: SimulatorRelation[];
+  premise_groups: unknown[];
+  inference_steps: unknown[];
+  literature_use: unknown[];
+  reference_bindings: unknown[];
+  ontology_gaps: unknown[];
+  projection_gaps: unknown[];
+  validation: Record<string, unknown>;
+}
+
+export interface SimulatorGraphNode extends SimulatorEntity {
+  position: { x: number; y: number };
+}
+
+export interface SimulatorGraphEdge extends SimulatorRelation {
+  source: string;
+  target: string;
+}
+
+export type CanonicalSimulatorGraphViewModel = GraphViewModel<SimulatorGraphNode, SimulatorGraphEdge, {
+  adapterVersion: 'canonical-simulator-0.1';
+  sourceSchemaVersion: string;
+  sourceArtifactType: 'CONFIRMED_SIMULATED_GRAPH';
+  generatedDeterministically: true;
+}>;
