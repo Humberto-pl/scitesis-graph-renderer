@@ -13,6 +13,8 @@ describe('Canonical Simulator Graph Adapter', () => {
     expect(new Set(model.nodes.map(node => node.id))).toEqual(new Set(artifact.entities.map(entity => entity.id)));
     expect(model.edges).toHaveLength(artifact.relations.length);
     expect(new Set(model.edges.map(edge => edge.id))).toEqual(new Set(artifact.relations.map(relation => relation.id)));
+    expect(model.metadata.inferenceSteps).toEqual(artifact.inference_steps);
+    expect(model.metadata.premiseGroups).toEqual(artifact.premise_groups);
   });
 
   it('preserves canonical types, names, endpoints, and relation metadata', () => {

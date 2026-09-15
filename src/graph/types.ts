@@ -53,6 +53,35 @@ export interface SimulatorRelation {
   iam_source: string;
 }
 
+export interface SimulatorPremiseGroup {
+  id: string;
+  mode: string;
+  member_ids: string[];
+  target_inference_step_id: string;
+  review_state: string;
+  provenance: unknown[];
+  origin: string;
+  version: string;
+  iam_source: string;
+}
+
+export interface SimulatorInferenceStep {
+  id: string;
+  canonical_type: string;
+  premise_ids: string[];
+  premise_group_ids: string[];
+  assumption_ids: string[];
+  warrant_assertion_ids: string[];
+  backing_ids: string[];
+  conclusion_id: string;
+  explicitness: string;
+  review_state: string;
+  provenance: unknown[];
+  origin: string;
+  version: string;
+  iam_source: string;
+}
+
 export interface ConfirmedSimulatedGraphArtifact {
   artifact_type: 'CONFIRMED_SIMULATED_GRAPH';
   contract_version: string;
@@ -62,8 +91,8 @@ export interface ConfirmedSimulatedGraphArtifact {
   execution: Record<string, unknown>;
   entities: SimulatorEntity[];
   relations: SimulatorRelation[];
-  premise_groups: unknown[];
-  inference_steps: unknown[];
+  premise_groups: SimulatorPremiseGroup[];
+  inference_steps: SimulatorInferenceStep[];
   literature_use: unknown[];
   reference_bindings: unknown[];
   ontology_gaps: unknown[];
@@ -85,4 +114,6 @@ export type CanonicalSimulatorGraphViewModel = GraphViewModel<SimulatorGraphNode
   sourceSchemaVersion: string;
   sourceArtifactType: 'CONFIRMED_SIMULATED_GRAPH';
   generatedDeterministically: true;
+  premiseGroups: SimulatorPremiseGroup[];
+  inferenceSteps: SimulatorInferenceStep[];
 }>;
