@@ -7,6 +7,7 @@ import { edgeDisplayLabel, nodeDisplayText, nodeKindDisplayLabel, stateDisplayLa
 import { existingHighlightPath, initialLayoutState, moveNode, resetLayout } from '../graph/interaction';
 import { createCanonicalDisplayEdges, createDisplayEdges } from '../graph/flowPresentation';
 import { inferentialRolesByEntity, inferenceStepView, type InferenceStepView, type InferentialRole } from '../graph/inferentialPresentation';
+import { canonicalEntityDisplayName } from '../canonical/canonicalRegistry';
 
 const ignoreTransientNodeChanges = () => undefined;
 
@@ -60,7 +61,7 @@ export function GraphRenderer({ model }: { model: RendererModel }) {
   const nodes: Node[] = useMemo(() => visible.map(n => ({
     id: n.id, position: layout[n.id] ?? n.position,
     data: { label: isCanonicalNode(n)
-      ? <div className="node-content"><b>{withCanonicalCode(n.canonical_name, n.canonical_type, showCodes)}</b><span>{n.label}</span>{canonicalRoles.get(n.id) && <div className="inferential-roles" aria-label={`Roles de ${n.id}`}>{[...canonicalRoles.get(n.id)!].map(role => <em key={role}>{role}</em>)}</div>}</div>
+      ? <div className="node-content"><b>{withCanonicalCode(canonicalEntityDisplayName(n.canonical_type, n.canonical_name), n.canonical_type, showCodes)}</b><span>{n.label}</span>{canonicalRoles.get(n.id) && <div className="inferential-roles" aria-label={`Roles de ${n.id}`}>{[...canonicalRoles.get(n.id)!].map(role => <em key={role}>{role}</em>)}</div>}</div>
       : <div className="node-content"><b>{withCanonicalCode(nodeKindDisplayLabel(n.kind), n.kind, showCodes)}</b><span>{nodeDisplayText(n, showCodes)}</span>{n.state && <em>{withCanonicalCode(stateDisplayLabel(n.state), n.state, showCodes)}</em>}{n.isMaximumDefendable && <strong className="maximum-badge">★ Máximo defendible</strong>}<div className="node-actions">{n.collapseCapabilities.map(capability => <button key={capability} aria-label={`Alternar ${capability} de ${n.id}`} onClick={event => { event.stopPropagation(); toggleCollapse(capability, n.id); }}>{capability === 'subclaims' ? 'Subclaims −/+' : 'Evidencia −/+'}</button>)}</div></div> },
     className: isCanonicalNode(n) ? `graph-node canonical-node ${n.canonical_type === 'ENT-039' ? 'inference-step-node' : ''} ${highlight && !highlight.nodeIds.has(n.id) ? 'dimmed' : ''}` : `graph-node kind-${n.kind.toLowerCase()} state-${n.state?.toLowerCase() ?? 'none'} ${n.isMaximumDefendable ? 'maximum-defendable' : ''} ${highlight && !highlight.nodeIds.has(n.id) ? 'dimmed' : ''}`,
   })), [visible, layout, showCodes, highlight, toggleCollapse, canonicalRoles]);
