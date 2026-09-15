@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { fixtures } from '../fixtures/cases';
 import qualisArtifactJson from '../fixtures/simulator-v0.3/QUALIS/confirmed_simulated_graph.json';
@@ -23,6 +23,52 @@ describe('GraphRenderer',()=>{
 });
 
 describe('GraphRenderer canonical simulator integration', () => {
+  it('keeps a compact contextual legend closed by default and opens it accessibly', () => {
+    render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
+
+    const legend = screen.getByLabelText('Leyenda');
+    expect(legend).not.toHaveAttribute('open');
+    expect(within(legend).queryByText(/ENT-001/)).not.toBeInTheDocument();
+    expect(within(legend).getByText('Inference step')).toBeInTheDocument();
+    expect(within(legend).getByText('PREMISE')).toBeInTheDocument();
+    expect(within(legend).getByText('WARRANT')).toBeInTheDocument();
+    expect(within(legend).queryByText('REBUTTAL')).not.toBeInTheDocument();
+
+    fireEvent.click(within(legend).getByText('Legend'));
+    expect(legend).toHaveAttribute('open');
+  });
+
+  it('derives inference and role entries from the final graph after filtering', () => {
+    render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
+    const legend = screen.getByLabelText('Leyenda');
+
+    fireEvent.click(screen.getByLabelText('Entity types: ENT-039'));
+    expect(within(legend).getByText('Inference step')).toBeInTheDocument();
+    expect(within(legend).queryByText('PREMISE')).not.toBeInTheDocument();
+    expect(within(legend).queryByText('CONCLUSION')).not.toBeInTheDocument();
+
+    const entityTypes = screen.getByLabelText('Entity types: ENT-039').closest('fieldset')!;
+    fireEvent.click(within(entityTypes).getByText('Limpiar filtro'));
+    fireEvent.click(screen.getByLabelText('Entity types: ENT-011'));
+    expect(within(legend).queryByText('Inference step')).not.toBeInTheDocument();
+    expect(within(legend).getByText('CONCLUSION')).toBeInTheDocument();
+    expect(within(legend).queryByText('PREMISE')).not.toBeInTheDocument();
+  });
+
+  it('updates argumentative roles from focused visibility rather than the eligible graph', () => {
+    render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
+    const legend = screen.getByLabelText('Leyenda');
+
+    fireEvent.click(screen.getByText('Inferencia hacia C-001'));
+    fireEvent.click(screen.getByText('Focus on this node'));
+    fireEvent.change(screen.getByLabelText('Focus direction'), { target: { value: 'outgoing' } });
+
+    expect(within(legend).getByText('Inference step')).toBeInTheDocument();
+    expect(within(legend).getByText('CONCLUSION')).toBeInTheDocument();
+    expect(within(legend).queryByText('PREMISE')).not.toBeInTheDocument();
+    expect(within(legend).queryByText('WARRANT')).not.toBeInTheDocument();
+  });
+
   it('keeps the compact filter section expandable and the workspace controls accessible', () => {
     render(<GraphRenderer model={buildCanonicalSimulatorGraphViewModel(qualisArtifact)} />);
 
@@ -201,7 +247,7 @@ describe('GraphRenderer canonical simulator integration', () => {
     expect(screen.getByTestId('graph-canvas')).toBeInTheDocument();
     expect(screen.getByText('Investigación doctoral QUALIS')).toBeInTheDocument();
     expect(screen.getByText('Inferencia hacia C-001')).toBeInTheDocument();
-    expect(screen.getByText(/ENT-001 · INVESTIGAÇÃO/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Entity types: ENT-001')).toBeInTheDocument();
     expect(screen.getAllByText(/ENT-018 · CONCEPTUAL_ENTITY/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/ENT-039 · INFERENCE_STEP/).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText('CLAIM')).not.toBeInTheDocument();
