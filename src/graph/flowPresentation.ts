@@ -1,6 +1,7 @@
 import { MarkerType, type Edge } from '@xyflow/react';
 import { edgeDisplayLabel, withCanonicalCode } from './displayLabels';
 import type { GraphEdge, SimulatorGraphEdge } from './types';
+import { canonicalRelationDisplayName } from '../canonical/canonicalRegistry';
 
 type DisplayableEdge = Pick<GraphEdge, 'id' | 'source' | 'target'>;
 
@@ -43,6 +44,10 @@ export function createCanonicalDisplayEdges(
 ): Edge[] {
   return toDisplayEdges(edges, visibleIds, edge => {
     const canonicalEdge = edge as SimulatorGraphEdge;
-    return withCanonicalCode(canonicalEdge.canonical_name, canonicalEdge.canonical_type, showCodes);
+    return withCanonicalCode(
+      canonicalRelationDisplayName(canonicalEdge.canonical_type, canonicalEdge.canonical_name),
+      canonicalEdge.canonical_type,
+      showCodes,
+    );
   }, highlightedEdgeIds);
 }
