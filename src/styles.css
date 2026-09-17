@@ -58,3 +58,5 @@
 .diagnostic-record-badge{width:max-content;padding:2px 6px;border:1px solid #596579;border-radius:9px;background:#f3f4f6;font-weight:700}
 .diagnostic-inspector{overflow:auto;padding:16px;border-left:1px solid #ccd2dc;background:#fff}.diagnostic-inspector h2{margin:0 0 12px;font-size:14px}.diagnostic-inspector dl{display:grid;grid-template-columns:minmax(110px,auto) minmax(0,1fr);gap:8px 12px;margin:0;font-size:12px}.diagnostic-inspector dt{font-weight:700}.diagnostic-inspector dd{margin:0;overflow-wrap:anywhere}.diagnostic-inspector dd button,.diagnostic-inspector section button{margin:4px;padding:3px 6px}.explanation-trace{margin-top:18px;border-top:1px solid #ccd2dc}.explanation-trace h3,.diagnostic-inspector section h3{font-size:13px}.explanation-trace ol{padding-left:20px}.explanation-trace li+li{margin-top:12px}
 @media(max-width:800px){.diagnostic-content{grid-template-columns:1fr}.diagnostic-inspector{border-top:1px solid #ccd2dc;border-left:0}}
+/* Neutral materialized frontier membership; no ordinal or diagnostic color semantics. */
+.frontier-member-badge{border-style:dashed;background:#eef0f4;color:#303b4b}
