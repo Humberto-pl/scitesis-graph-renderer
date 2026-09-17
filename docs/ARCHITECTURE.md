@@ -9,7 +9,7 @@ v0.2 is a **stabilized development baseline**, not a production or client-delive
 | Input | Responsibility | Authority |
 | --- | --- | --- |
 | Diagnostic Output v0.1.2 | Materialized claims, inference states, H_e transitions, breakpoints, downstream effects, frontier, traces, and review items | Sole authority for the visible diagnosis |
-| G_I | Optional structural context for exact reference resolution | Auxiliary only |
+| G_I full graph contract | Materialized interpreted-graph structure; currently available as a validated, read-only contract only | Structural, never diagnostic |
 | G_D | Optional diagnostic context for exact reference resolution | Auxiliary only |
 | Legacy Confirmed Simulated Graph | Compatibility view through its existing pipeline | Separate from Diagnostic Output |
 | Renderer | Projection and display | Never diagnoses or repairs input |
@@ -84,13 +84,17 @@ These identities support selection and React Flow rendering; they are not canoni
 
 These IDs must not be read back as diagnostic conclusions. Canonical IDs and fields remain unchanged.
 
-## Auxiliary minimum-reader boundary
+## G_I structural contract and auxiliary boundaries
 
-The repository contains no complete executable G_I or G_D schema. Current readers accept only the documented snapshot identity plus `entities[]` fields needed for inspection; other data remains opaque. A future executable authority should replace this minimum boundary. The readers must not grow by guessing undeclared graph semantics.
+The executable full G_I contract validates materialized entities, relations, and, when present, inference steps and premise groups. It preserves compatible extensions and checks only declared shape, unique IDs, and internal references. It does not add relations, reconstruct topology, or assess methodological or diagnostic correctness. This PR exposes that contract without claiming that the renderer already supports a complete structural map.
+
+The existing minimum G_I reader remains the auxiliary path for exact Diagnostic Output reference resolution, while a validated full G_I is structurally compatible with that path through its `entities`. G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. A future map will be built from materialized G_I structure and annotated by Diagnostic Output, not inferred or repaired by the renderer.
+
+There is still no complete executable G_D schema. Its current reader accepts only the documented snapshot identity plus `entities[]` fields needed for inspection; other data remains opaque.
 
 ## Known limits and future work
 
-- authoritative executable G_I/G_D schemas;
+- an authoritative executable G_D schema and structural G_I rendering;
 - dedicated compatibility-maximums presentation;
 - richer layout (including broader claim/inference placement needs), without changing topology;
 - production packaging and operational hardening;

@@ -1,0 +1,22 @@
+{
+  "graph_ref": "graph-test",
+  "graph_version": "1.0",
+  "entities": [
+    { "id": "E1", "canonical_type": "premise", "text": "Premise one" },
+    { "id": "E2", "canonical_type": "premise", "text": "Premise two" },
+    { "id": "I1", "canonical_type": "inference_step_anchor" },
+    { "id": "C1", "canonical_type": "conclusion", "text": "Conclusion" }
+  ],
+  "relations": [
+    { "id": "R1", "canonical_type": "supports", "source_id": "E1", "target_id": "I1" },
+    { "id": "R2", "canonical_type": "supports", "source_id": "E2", "target_id": "I1" },
+    { "id": "R3", "canonical_type": "concludes", "source_id": "I1", "target_id": "C1" }
+  ],
+  "premise_groups": [
+    { "id": "PG1", "mode": "linked", "member_ids": ["E1", "E2"], "target_inference_step_id": "I1", "review_state": "reviewed", "provenance": [], "origin": "test", "version": 1, "iam_source": null }
+  ],
+  "inference_steps": [
+    { "id": "I1", "canonical_type": "inference", "premise_ids": ["E1", "E2"], "premise_group_ids": ["PG1"], "assumption_ids": [], "warrant_assertion_ids": [], "backing_ids": [], "conclusion_id": "C1", "explicitness": "explicit", "review_state": "reviewed", "provenance": [], "origin": "test", "version": 1, "iam_source": null }
+  ],
+  "extension_example": { "preserved": true }
+}
