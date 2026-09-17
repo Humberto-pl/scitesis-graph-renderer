@@ -1,0 +1,972 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scitesis://diagnostic-output/0.1.2",
+  "title": "SciTesis Diagnostic Output v0.1.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_metadata",
+    "scope",
+    "inference_step_states",
+    "claim_defendibility",
+    "viable_dependency_view",
+    "breakpoints",
+    "downstream_effects",
+    "defendability_frontier",
+    "compatibility_maximums",
+    "review_required_items",
+    "explanation_summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.2"
+    },
+    "run_metadata": {
+      "$ref": "#/$defs/runMetadata"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "inference_step_states": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/inferenceStepState"
+      }
+    },
+    "claim_defendibility": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claimDefendibility"
+      }
+    },
+    "viable_dependency_view": {
+      "$ref": "#/$defs/viableDependencyView"
+    },
+    "breakpoints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/breakpoint"
+      }
+    },
+    "downstream_effects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/downstreamEffect"
+      }
+    },
+    "defendability_frontier": {
+      "$ref": "#/$defs/frontier"
+    },
+    "compatibility_maximums": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/compatibilityMaximum"
+      }
+    },
+    "review_required_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reviewRequiredItem"
+      }
+    },
+    "explanation_summary": {
+      "$ref": "#/$defs/explanationSummary"
+    }
+  },
+  "$defs": {
+    "triState": {
+      "type": "string",
+      "enum": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "resolutionStatus": {
+      "type": "string",
+      "enum": [
+        "RESOLVED",
+        "REVIEW_REQUIRED"
+      ]
+    },
+    "traceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "trace_kind",
+        "subject_ref",
+        "rule_ref",
+        "message"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "trace_kind": {
+          "type": "string",
+          "enum": [
+            "ORIGIN",
+            "DIAGNOSTIC_EVIDENCE",
+            "INFERENCE_STEP",
+            "LOST_ROUTE",
+            "ALTERNATIVE_ROUTE",
+            "DEFENDIBILITY_DECISION",
+            "FRONTIER_DECISION",
+            "OTHER"
+          ]
+        },
+        "subject_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rule_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "runMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "graph_ref",
+        "graph_version",
+        "diagnostic_graph_ref",
+        "diagnostic_graph_version",
+        "diagnostic_graph_origin",
+        "evaluation_state_id",
+        "diagnostic_rule_version",
+        "simulator_or_engine",
+        "implementation_version",
+        "active_adjudication_refs",
+        "active_diagnostic_condition_refs",
+        "active_defeater_refs"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "graph_ref": {
+          "type": "string"
+        },
+        "graph_version": {
+          "type": "string"
+        },
+        "diagnostic_graph_ref": {
+          "type": "string"
+        },
+        "diagnostic_graph_version": {
+          "type": "string"
+        },
+        "diagnostic_graph_origin": {
+          "type": "string",
+          "enum": [
+            "PROVIDED",
+            "DERIVED"
+          ]
+        },
+        "evaluation_state_id": {
+          "type": "string"
+        },
+        "diagnostic_rule_version": {
+          "type": "string"
+        },
+        "simulator_or_engine": {
+          "type": "string",
+          "enum": [
+            "SIMULATOR_AI",
+            "DIAGNOSTIC_ENGINE"
+          ]
+        },
+        "implementation_version": {
+          "type": "string"
+        },
+        "active_adjudication_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "active_diagnostic_condition_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "active_defeater_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_id",
+        "target_claim_ids",
+        "objective_refs",
+        "component_refs",
+        "scope_payload",
+        "scope_status",
+        "scope_notes"
+      ],
+      "properties": {
+        "scope_id": {
+          "type": "string"
+        },
+        "target_claim_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "objective_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "component_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope_payload": {
+          "oneOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope_status": {
+          "$ref": "#/$defs/resolutionStatus"
+        },
+        "scope_notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "inferenceStepState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inference_step_id",
+        "active_state",
+        "activity_adjudication_status",
+        "required_inputs_satisfied",
+        "applicable",
+        "defeated",
+        "blocking_reasons",
+        "supporting_diagnostic_evidence_ids",
+        "rule_version",
+        "explanation_trace"
+      ],
+      "properties": {
+        "inference_step_id": {
+          "type": "string"
+        },
+        "active_state": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "INACTIVE",
+            "UNKNOWN"
+          ]
+        },
+        "activity_adjudication_status": {
+          "$ref": "#/$defs/resolutionStatus"
+        },
+        "required_inputs_satisfied": {
+          "$ref": "#/$defs/triState"
+        },
+        "applicable": {
+          "$ref": "#/$defs/triState"
+        },
+        "defeated": {
+          "$ref": "#/$defs/triState"
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supporting_diagnostic_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rule_version": {
+          "type": "string"
+        },
+        "explanation_trace": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/traceItem"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "active_state": {
+                "const": "UNKNOWN"
+              }
+            },
+            "required": [
+              "active_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "activity_adjudication_status": {
+                "const": "REVIEW_REQUIRED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "claimDefendibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "scope_id",
+        "def_e_value",
+        "defendibility_state",
+        "adjudication_status",
+        "viable_derivation_ids",
+        "blocked_derivation_ids",
+        "blocking_condition_ids",
+        "active_defeater_ids",
+        "maximum_defensible_reformulation",
+        "explanation_trace",
+        "rule_version"
+      ],
+      "properties": {
+        "claim_id": {
+          "type": "string"
+        },
+        "scope_id": {
+          "type": "string"
+        },
+        "def_e_value": {
+          "$ref": "#/$defs/triState"
+        },
+        "defendibility_state": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "not": {
+            "const": "REVIEW_REQUIRED"
+          }
+        },
+        "adjudication_status": {
+          "$ref": "#/$defs/resolutionStatus"
+        },
+        "viable_derivation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blocked_derivation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blocking_condition_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "active_defeater_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "maximum_defensible_reformulation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "explanation_trace": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/traceItem"
+          }
+        },
+        "rule_version": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "def_e_value": {
+                "const": "TRUE"
+              }
+            },
+            "required": [
+              "def_e_value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "adjudication_status": {
+                "const": "RESOLVED"
+              },
+              "viable_derivation_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "def_e_value": {
+                "const": "FALSE"
+              }
+            },
+            "required": [
+              "def_e_value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "adjudication_status": {
+                "const": "RESOLVED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "def_e_value": {
+                "const": "UNKNOWN"
+              }
+            },
+            "required": [
+              "def_e_value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "adjudication_status": {
+                "const": "REVIEW_REQUIRED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "viableTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_claim_or_input_id",
+        "inference_step_id",
+        "target_claim_id",
+        "transition_state",
+        "required_for_step",
+        "required_for_target",
+        "alternative_route_refs",
+        "why_active",
+        "provenance_refs"
+      ],
+      "properties": {
+        "source_claim_or_input_id": {
+          "type": "string"
+        },
+        "inference_step_id": {
+          "type": "string"
+        },
+        "target_claim_id": {
+          "type": "string"
+        },
+        "transition_state": {
+          "const": "ACTIVE"
+        },
+        "required_for_step": {
+          "$ref": "#/$defs/triState"
+        },
+        "required_for_target": {
+          "$ref": "#/$defs/triState"
+        },
+        "alternative_route_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "why_active": {
+          "type": "string"
+        },
+        "provenance_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "viableDependencyView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_id",
+        "scope_id",
+        "evaluation_state_id",
+        "transitions",
+        "view_status",
+        "derivation_rule_version"
+      ],
+      "properties": {
+        "view_id": {
+          "type": "string"
+        },
+        "scope_id": {
+          "type": "string"
+        },
+        "evaluation_state_id": {
+          "type": "string"
+        },
+        "transitions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/viableTransition"
+          }
+        },
+        "view_status": {
+          "$ref": "#/$defs/resolutionStatus"
+        },
+        "derivation_rule_version": {
+          "type": "string"
+        }
+      }
+    },
+    "failureMode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "UNSATISFIED_REQUIRED_PREMISE",
+        "UNSATISFIED_REQUIRED_WARRANT_OR_ASSUMPTION",
+        "INAPPLICABLE_STEP",
+        "UNDERCUT_INFERENCE",
+        "UNDERMINED_REQUIRED_INPUT",
+        "REBUTTED_CONCLUSION",
+        "BLOCKING_DIAGNOSTIC_CONDITION",
+        null
+      ]
+    },
+    "breakpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "breakpoint_id",
+        "scope_id",
+        "route_or_path_ref",
+        "origin_of_failure_ref",
+        "breakpoint_step_id",
+        "affected_transition_target_id",
+        "failure_mode",
+        "active_defeater_or_blocking_condition_ref",
+        "first_break_on_route",
+        "adjudication_status",
+        "explanation_trace"
+      ],
+      "properties": {
+        "breakpoint_id": {
+          "type": "string"
+        },
+        "scope_id": {
+          "type": "string"
+        },
+        "route_or_path_ref": {
+          "type": "string"
+        },
+        "origin_of_failure_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "breakpoint_step_id": {
+          "type": "string"
+        },
+        "affected_transition_target_id": {
+          "type": "string"
+        },
+        "failure_mode": {
+          "$ref": "#/$defs/failureMode"
+        },
+        "active_defeater_or_blocking_condition_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "first_break_on_route": {
+          "$ref": "#/$defs/triState"
+        },
+        "adjudication_status": {
+          "$ref": "#/$defs/resolutionStatus"
+        },
+        "explanation_trace": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/traceItem"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "failure_mode": {
+                "const": null
+              }
+            },
+            "required": [
+              "failure_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "adjudication_status": {
+                "const": "REVIEW_REQUIRED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "downstreamEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failure_ref",
+        "target_claim_id",
+        "affected_state",
+        "adjudication_status",
+        "lost_viable_derivation_ids",
+        "remaining_viable_derivation_ids",
+        "required_dependency_refs",
+        "alternative_route_refs",
+        "propagation_reason",
+        "explanation_trace"
+      ],
+      "properties": {
+        "failure_ref": {
+          "type": "string"
+        },
+        "target_claim_id": {
+          "type": "string"
+        },
+        "affected_state": {
+          "type": "string",
+          "enum": [
+            "AFFECTED",
+            "NOT_AFFECTED",
+            "UNKNOWN"
+          ]
+        },
+        "adjudication_status": {
+          "$ref": "#/$defs/resolutionStatus"
+        },
+        "lost_viable_derivation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "remaining_viable_derivation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_dependency_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "alternative_route_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "propagation_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "explanation_trace": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/traceItem"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "affected_state": {
+                "const": "UNKNOWN"
+              }
+            },
+            "required": [
+              "affected_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "adjudication_status": {
+                "const": "REVIEW_REQUIRED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "frontier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_id",
+        "evaluation_state_id",
+        "member_claim_ids",
+        "frontier_cardinality",
+        "graph_version",
+        "diagnostic_rule_version",
+        "active_adjudication_refs",
+        "frontier_status",
+        "explanation_trace"
+      ],
+      "properties": {
+        "scope_id": {
+          "type": "string"
+        },
+        "evaluation_state_id": {
+          "type": "string"
+        },
+        "member_claim_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "frontier_cardinality": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "graph_version": {
+          "type": "string"
+        },
+        "diagnostic_rule_version": {
+          "type": "string"
+        },
+        "active_adjudication_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "frontier_status": {
+          "$ref": "#/$defs/resolutionStatus"
+        },
+        "explanation_trace": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/traceItem"
+          }
+        }
+      }
+    },
+    "compatibilityMaximum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_id",
+        "route_or_path_ref",
+        "claim_id",
+        "maximum_kind",
+        "basis"
+      ],
+      "properties": {
+        "scope_id": {
+          "type": "string"
+        },
+        "route_or_path_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "claim_id": {
+          "type": "string"
+        },
+        "maximum_kind": {
+          "type": "string",
+          "enum": [
+            "TRUE_GLOBAL_MAXIMUM",
+            "ROUTE_LOCAL_MAXIMUM"
+          ]
+        },
+        "basis": {
+          "type": "string"
+        }
+      }
+    },
+    "reviewRequiredItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "subject_ref",
+        "review_reason",
+        "blocking_question",
+        "possible_impact",
+        "recommended_adjudication_target"
+      ],
+      "properties": {
+        "item_id": {
+          "type": "string"
+        },
+        "subject_ref": {
+          "type": "string"
+        },
+        "review_reason": {
+          "type": "string"
+        },
+        "blocking_question": {
+          "type": "string"
+        },
+        "possible_impact": {
+          "type": "string"
+        },
+        "recommended_adjudication_target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "explanationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary_status",
+        "primary_findings",
+        "frontier_summary",
+        "breakpoint_summary",
+        "propagation_summary",
+        "review_required_summary"
+      ],
+      "properties": {
+        "summary_status": {
+          "type": "string",
+          "enum": [
+            "COMPLETE",
+            "PARTIAL_REVIEW_REQUIRED"
+          ]
+        },
+        "primary_findings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "frontier_summary": {
+          "type": "string"
+        },
+        "breakpoint_summary": {
+          "type": "string"
+        },
+        "propagation_summary": {
+          "type": "string"
+        },
+        "review_required_summary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "scope": {
+            "properties": {
+              "scope_status": {
+                "const": "REVIEW_REQUIRED"
+              }
+            },
+            "required": [
+              "scope_status"
+            ]
+          }
+        },
+        "required": [
+          "scope"
+        ]
+      },
+      "then": {
+        "properties": {
+          "defendability_frontier": {
+            "properties": {
+              "frontier_status": {
+                "const": "REVIEW_REQUIRED"
+              }
+            },
+            "required": [
+              "frontier_status"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
