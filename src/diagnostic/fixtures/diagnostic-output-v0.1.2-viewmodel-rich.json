@@ -1,0 +1,211 @@
+{
+  "schema_version": "0.1.2",
+  "run_metadata": {
+    "run_id": "run-viewmodel-rich",
+    "graph_ref": "graph-minimal",
+    "graph_version": "1",
+    "diagnostic_graph_ref": "diagnostic-graph-minimal",
+    "diagnostic_graph_version": "1",
+    "diagnostic_graph_origin": "PROVIDED",
+    "evaluation_state_id": "evaluation-minimal",
+    "diagnostic_rule_version": "1",
+    "simulator_or_engine": "DIAGNOSTIC_ENGINE",
+    "implementation_version": "1",
+    "active_adjudication_refs": [
+      "adj-1"
+    ],
+    "active_diagnostic_condition_refs": [
+      "condition-1"
+    ],
+    "active_defeater_refs": [
+      "defeater-1"
+    ]
+  },
+  "scope": {
+    "scope_id": "scope-rich",
+    "target_claim_ids": [
+      "claim-supported",
+      "claim-affected"
+    ],
+    "objective_refs": [],
+    "component_refs": [],
+    "scope_payload": null,
+    "scope_status": "RESOLVED",
+    "scope_notes": "Rich fixture for ViewModel projection tests."
+  },
+  "inference_step_states": [
+    {
+      "inference_step_id": "step-rich",
+      "active_state": "ACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "INFERENCE_STEP",
+          "subject_ref": "step-rich",
+          "rule_ref": "rule-1",
+          "message": "Canonical active-state trace."
+        }
+      ]
+    }
+  ],
+  "claim_defendibility": [
+    {
+      "claim_id": "claim-supported",
+      "scope_id": "scope-rich",
+      "def_e_value": "TRUE",
+      "defendibility_state": "DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [
+        "route-active"
+      ],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "DEFENDIBILITY_DECISION",
+          "subject_ref": "claim-supported",
+          "rule_ref": "rule-1",
+          "message": "Canonical defendibility trace."
+        }
+      ],
+      "rule_version": "1"
+    },
+    {
+      "claim_id": "claim-affected",
+      "scope_id": "scope-rich",
+      "def_e_value": "FALSE",
+      "defendibility_state": "NOT_DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [
+        "route-blocked"
+      ],
+      "blocking_condition_ids": [
+        "condition-1"
+      ],
+      "active_defeater_ids": [
+        "defeater-1"
+      ],
+      "maximum_defensible_reformulation": "claim-supported",
+      "explanation_trace": [],
+      "rule_version": "1"
+    }
+  ],
+  "viable_dependency_view": {
+    "view_id": "view-rich",
+    "scope_id": "scope-rich",
+    "evaluation_state_id": "evaluation-minimal",
+    "transitions": [
+      {
+        "source_claim_or_input_id": "input-1",
+        "inference_step_id": "step-rich",
+        "target_claim_id": "claim-supported",
+        "transition_state": "ACTIVE",
+        "required_for_step": "TRUE",
+        "required_for_target": "TRUE",
+        "alternative_route_refs": [
+          "route-alternative"
+        ],
+        "why_active": "Materialized by the diagnostic engine.",
+        "provenance_refs": [
+          "provenance-1"
+        ]
+      }
+    ],
+    "view_status": "RESOLVED",
+    "derivation_rule_version": "1"
+  },
+  "breakpoints": [
+    {
+      "breakpoint_id": "breakpoint-1",
+      "scope_id": "scope-rich",
+      "route_or_path_ref": "route-blocked",
+      "origin_of_failure_ref": "condition-1",
+      "breakpoint_step_id": "step-rich",
+      "affected_transition_target_id": "claim-affected",
+      "failure_mode": "BLOCKING_DIAGNOSTIC_CONDITION",
+      "active_defeater_or_blocking_condition_ref": "condition-1",
+      "first_break_on_route": "TRUE",
+      "adjudication_status": "RESOLVED",
+      "explanation_trace": []
+    }
+  ],
+  "downstream_effects": [
+    {
+      "failure_ref": "breakpoint-1",
+      "target_claim_id": "claim-affected",
+      "affected_state": "AFFECTED",
+      "adjudication_status": "RESOLVED",
+      "lost_viable_derivation_ids": [
+        "route-blocked"
+      ],
+      "remaining_viable_derivation_ids": [],
+      "required_dependency_refs": [
+        "step-rich"
+      ],
+      "alternative_route_refs": [
+        "route-alternative"
+      ],
+      "propagation_reason": "Canonical propagation result.",
+      "explanation_trace": []
+    }
+  ],
+  "defendability_frontier": {
+    "scope_id": "scope-rich",
+    "evaluation_state_id": "evaluation-minimal",
+    "member_claim_ids": [
+      "claim-supported"
+    ],
+    "frontier_cardinality": 1,
+    "graph_version": "1",
+    "diagnostic_rule_version": "1",
+    "active_adjudication_refs": [
+      "adj-1"
+    ],
+    "frontier_status": "RESOLVED",
+    "explanation_trace": []
+  },
+  "compatibility_maximums": [
+    {
+      "scope_id": "scope-rich",
+      "route_or_path_ref": "route-active",
+      "claim_id": "claim-supported",
+      "maximum_kind": "ROUTE_LOCAL_MAXIMUM",
+      "basis": "Canonical compatibility result."
+    }
+  ],
+  "review_required_items": [
+    {
+      "item_id": "review-1",
+      "subject_ref": "condition-1",
+      "review_reason": "Canonical unresolved question.",
+      "blocking_question": "Is the condition adjudicated?",
+      "possible_impact": "The affected claim may change.",
+      "recommended_adjudication_target": "adj-1"
+    }
+  ],
+  "explanation_summary": {
+    "summary_status": "PARTIAL_REVIEW_REQUIRED",
+    "primary_findings": [
+      "Projection fixture."
+    ],
+    "frontier_summary": "One canonical member.",
+    "breakpoint_summary": "One canonical breakpoint.",
+    "propagation_summary": "One canonical effect.",
+    "review_required_summary": [
+      "One item requires review."
+    ]
+  }
+}
