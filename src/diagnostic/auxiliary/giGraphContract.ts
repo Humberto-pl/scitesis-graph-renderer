@@ -56,9 +56,9 @@ export interface GiInferenceStep extends Record<string, unknown> {
   explicitness: string;
   review_state: string;
   provenance: unknown[];
-  origin: string;
-  version: unknown;
-  iam_source: unknown;
+  origin?: string;
+  version?: unknown;
+  iam_source?: unknown;
 }
 
 export interface GiPremiseGroup extends Record<string, unknown> {
@@ -68,9 +68,9 @@ export interface GiPremiseGroup extends Record<string, unknown> {
   target_inference_step_id: string;
   review_state: string;
   provenance: unknown[];
-  origin: string;
-  version: unknown;
-  iam_source: unknown;
+  origin?: string;
+  version?: unknown;
+  iam_source?: unknown;
 }
 
 export interface GiGraphContract extends Record<string, unknown> {
@@ -171,10 +171,10 @@ export function loadGiGraphContract(input: unknown): GiGraphContractResult {
   else if (Array.isArray(input.inference_steps)) input.inference_steps.forEach((item, index) => {
     const path = `inference_steps[${index}]`;
     if (!record(item)) { details.push(`${path} must be an object.`); return; }
-    for (const key of ['id', 'canonical_type', 'conclusion_id', 'explicitness', 'review_state', 'origin']) if (!nonEmptyString(item[key])) details.push(`${path}.${key} must be a non-empty string.`);
+    for (const key of ['id', 'canonical_type', 'conclusion_id', 'explicitness', 'review_state']) if (!nonEmptyString(item[key])) details.push(`${path}.${key} must be a non-empty string.`);
     for (const key of ['premise_ids', 'premise_group_ids', 'assumption_ids', 'warrant_assertion_ids', 'backing_ids']) stringArray(item[key], `${path}.${key}`, details);
     if (!Array.isArray(item.provenance)) details.push(`${path}.provenance must be an array.`);
-    for (const key of ['version', 'iam_source']) if (!(key in item)) details.push(`${path}.${key} is required.`);
+    if ('origin' in item && typeof item.origin !== 'string') details.push(`${path}.origin must be a string when present.`);
     if (nonEmptyString(item.id)) inferenceSteps.push(item as GiInferenceStep);
   });
 
@@ -183,10 +183,10 @@ export function loadGiGraphContract(input: unknown): GiGraphContractResult {
   else if (Array.isArray(input.premise_groups)) input.premise_groups.forEach((item, index) => {
     const path = `premise_groups[${index}]`;
     if (!record(item)) { details.push(`${path} must be an object.`); return; }
-    for (const key of ['id', 'mode', 'target_inference_step_id', 'review_state', 'origin']) if (!nonEmptyString(item[key])) details.push(`${path}.${key} must be a non-empty string.`);
+    for (const key of ['id', 'mode', 'target_inference_step_id', 'review_state']) if (!nonEmptyString(item[key])) details.push(`${path}.${key} must be a non-empty string.`);
     stringArray(item.member_ids, `${path}.member_ids`, details);
     if (!Array.isArray(item.provenance)) details.push(`${path}.provenance must be an array.`);
-    for (const key of ['version', 'iam_source']) if (!(key in item)) details.push(`${path}.${key} is required.`);
+    if ('origin' in item && typeof item.origin !== 'string') details.push(`${path}.origin must be a string when present.`);
     if (nonEmptyString(item.id)) premiseGroups.push(item as GiPremiseGroup);
   });
 

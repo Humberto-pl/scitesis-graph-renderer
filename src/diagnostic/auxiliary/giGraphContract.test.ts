@@ -53,6 +53,29 @@ describe('full G_I graph contract', () => {
     expect(loadGiGraphContract({ graph_ref: 'g', graph_version: '1', entities: [], relations: [] }).ok).toBe(true);
   });
 
+  it('accepts materialized inference structures without optional origin, version, or iam_source', () => {
+    const graph = valid();
+    for (const item of [...graph.inference_steps, ...graph.premise_groups]) {
+      const record = item as unknown as Record<string, unknown>;
+      delete record.origin;
+      delete record.version;
+      delete record.iam_source;
+    }
+    expect(loadGiGraphContract(graph).ok).toBe(true);
+  });
+
+  it('rejects a present non-string origin while accepting its absence', () => {
+    const withoutOrigin = valid();
+    for (const item of [...withoutOrigin.inference_steps, ...withoutOrigin.premise_groups]) {
+      delete (item as unknown as Record<string, unknown>).origin;
+    }
+    expect(loadGiGraphContract(withoutOrigin).ok).toBe(true);
+
+    const invalidOrigin = structuredClone(withoutOrigin) as unknown as Record<string, unknown>;
+    (invalidOrigin.inference_steps as Array<Record<string, unknown>>)[0].origin = 1;
+    expect(rejectDetails(invalidOrigin).some(detail => detail.includes('origin must be a string when present'))).toBe(true);
+  });
+
   it('rejects malformed records without throwing', () => {
     const graph = valid() as unknown as Record<string, unknown>;
     graph.inference_steps = [{ id: 'I2', canonical_type: 'inference', premise_ids: 'E1' }];
