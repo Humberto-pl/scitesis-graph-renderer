@@ -60,3 +60,9 @@
 @media(max-width:800px){.diagnostic-content{grid-template-columns:1fr}.diagnostic-inspector{border-top:1px solid #ccd2dc;border-left:0}}
 /* Neutral materialized frontier membership; no ordinal or diagnostic color semantics. */
 .frontier-member-badge{border-style:dashed;background:#eef0f4;color:#303b4b}
+
+/* PR8 literal, renderer-neutral diagnostic trace panel. */
+.diagnostic-side-panels{overflow:auto;border-left:1px solid #ccd2dc;background:#fff}
+.diagnostic-side-panels>.diagnostic-inspector{overflow:visible;border-left:0;border-bottom:2px solid #ccd2dc}
+.trace-panel{padding:16px;background:#fff}.trace-panel h2{margin:0 0 12px;font-size:14px;letter-spacing:.04em}.trace-source{padding:8px;border:1px solid #bbc3cf;background:#f7f9fc;overflow-wrap:anywhere}.trace-reference-group{margin-top:14px}.trace-reference-group h3,.trace-literal-fields h3{margin:0 0 5px;font-size:12px}.trace-reference-group pre{margin:0;padding:7px;border:1px solid #ccd2dc;background:#f7f9fc;white-space:pre-wrap;overflow-wrap:anywhere}.trace-reference-group small{display:block;margin-top:4px;color:#596579}.trace-literal-fields{margin-top:18px}.trace-literal-fields dl{display:grid;grid-template-columns:minmax(110px,auto) minmax(0,1fr);gap:7px 10px;font-size:12px}.trace-panel .explanation-trace dl{display:grid;grid-template-columns:minmax(90px,auto) minmax(0,1fr);gap:6px 10px;font-size:12px}
+@media(max-width:800px){.diagnostic-side-panels{border-left:0;border-top:1px solid #ccd2dc}}
