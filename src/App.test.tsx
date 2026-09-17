@@ -10,6 +10,19 @@ const artifactFile = (artifact: unknown, name: string) => ({
 });
 
 describe('App artifact import integration', () => {
+  it('offers an explicit canonical Diagnostic Output route while retaining legacy', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
+    expect(screen.getByTestId('diagnostic-graph-canvas')).toBeInTheDocument();
+    expect(screen.getByText('ID: claim-supported')).toBeInTheDocument();
+    expect(screen.getByText('ID: step-rich')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('input-1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Legacy' }));
+    expect(screen.getByText('QUALIS · ejemplo incluido')).toBeInTheDocument();
+    expect(screen.getByTestId('graph-canvas')).toBeInTheDocument();
+  });
+
   it('keeps the previous artifact visible after schema validation fails', async () => {
     render(<App />);
     expect(screen.getByText('QUALIS · ejemplo incluido')).toBeInTheDocument();
