@@ -126,4 +126,50 @@ describe('DiagnosticGraphRenderer', () => {
     expect(screen.queryByRole('button', { name: /Inspeccionar breakpoint/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Inspeccionar downstream/ })).not.toBeInTheDocument();
   });
+
+  it('keeps an empty REVIEW_REQUIRED frontier inspectable and displays literal cardinality and members', () => {
+    const viewModel = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(minimalFixture)));
+    const model = adaptDiagnosticGraphForRender(viewModel);
+    render(<DiagnosticGraphRenderer model={model} />);
+    const control = screen.getByRole('button', { name: 'Inspeccionar defendability frontier' });
+    expect(control).toHaveTextContent('Frontier: 0 miembros');
+    expect(screen.queryByText('Frontier member')).not.toBeInTheDocument();
+    fireEvent.click(control);
+    const inspector = screen.getByRole('complementary');
+    expect(within(inspector).getByRole('heading', { name: 'DEFENDABILITY FRONTIER' })).toBeInTheDocument();
+    expect(within(inspector).getAllByText('[]').length).toBeGreaterThan(0);
+    expect(within(inspector).getByText('0')).toBeInTheDocument();
+    expect(within(inspector).getByText('REVIEW_REQUIRED')).toBeInTheDocument();
+  });
+
+  it('shows every materialized frontier member neutrally and inspects every canonical field and trace', () => {
+    const viewModel = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(richFixture)));
+    viewModel.frontier.member_claim_ids = ['claim-affected', 'claim-supported'];
+    viewModel.frontier.frontier_cardinality = 2;
+    viewModel.frontier.explanation_trace = [{ sequence: 4, trace_kind: 'FRONTIER_DECISION', subject_ref: 'claim-affected', rule_ref: 'frontier-rule', message: 'Materialized frontier trace.' }];
+    viewModel.compatibilityMaximums[0].claim_id = 'claim-other';
+    const model = adaptDiagnosticGraphForRender(viewModel);
+    const before = structuredClone(model);
+    render(<DiagnosticGraphRenderer model={model} />);
+    expect(screen.getAllByText('Frontier member')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar defendability frontier' }));
+    const inspector = screen.getByRole('complementary');
+    for (const value of ['scope-rich', 'evaluation-minimal', '["claim-affected","claim-supported"]', '2', 'RESOLVED', '["adj-1"]', 'Materialized frontier trace.', 'FRONTIER_DECISION', 'frontier-rule']) expect(within(inspector).getByText(value)).toBeInTheDocument();
+    expect(model).toEqual(before);
+  });
+
+  it('reports a non-visible frontier member while preserving the materialized cardinality', () => {
+    const viewModel = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(richFixture)));
+    viewModel.frontier.member_claim_ids = ['claim-missing'];
+    viewModel.frontier.frontier_cardinality = 99;
+    const model = adaptDiagnosticGraphForRender(viewModel);
+    render(<DiagnosticGraphRenderer model={model} />);
+    expect(screen.getByRole('button', { name: 'Inspeccionar defendability frontier' })).toHaveTextContent('99 miembros');
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar defendability frontier' }));
+    const inspector = screen.getByRole('complementary');
+    expect(within(inspector).getAllByText('["claim-missing"]')).toHaveLength(2);
+    expect(within(inspector).getByText('99')).toBeInTheDocument();
+    expect(model.nodes.some(node => node.canonicalId === 'claim-missing')).toBe(false);
+  });
+
 });

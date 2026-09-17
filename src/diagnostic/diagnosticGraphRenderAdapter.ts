@@ -2,6 +2,7 @@ import type {
   DiagnosticClaimView,
   DiagnosticBreakpointView,
   DiagnosticDownstreamEffectView,
+  DiagnosticFrontierView,
   DiagnosticGraphViewModel,
   DiagnosticInferenceStepView,
   DiagnosticTransitionView,
@@ -14,6 +15,7 @@ export interface DiagnosticClaimRenderNode {
   position: { x: number; y: number };
   claim: DiagnosticClaimView;
   downstreamEffectIds: string[];
+  isFrontierMember: boolean;
 }
 
 export interface DiagnosticInferenceRenderNode {
@@ -77,6 +79,14 @@ export interface DiagnosticDownstreamEffectRenderItem {
   relatedBreakpointId: string | null;
 }
 
+/** The fixed id is renderer-only; Diagnostic Output materializes one frontier per output. */
+export interface DiagnosticFrontierRenderItem {
+  id: 'defendability-frontier';
+  frontier: DiagnosticFrontierView;
+  visibleMemberClaimNodeIds: string[];
+  unavailableMemberClaimIds: string[];
+}
+
 export type UnavailableDiagnosticReferenceRole =
   | 'BREAKPOINT_STEP'
   | 'BREAKPOINT_TARGET'
@@ -96,6 +106,7 @@ export interface DiagnosticGraphRenderModel {
   unavailableTransitionReferences: UnavailableTransitionReference[];
   breakpoints: DiagnosticBreakpointRenderItem[];
   downstreamEffects: DiagnosticDownstreamEffectRenderItem[];
+  frontier: DiagnosticFrontierRenderItem;
   unavailableDiagnosticReferences: UnavailableDiagnosticReference[];
 }
 
@@ -103,8 +114,8 @@ const claimNodeId = (id: string) => `claim:${id}`;
 const inferenceNodeId = (id: string) => `inference:${id}`;
 
 /**
- * Maps only canonical claims, inference steps, and explicitly materialized
- * transitions. It intentionally does not inspect any other ViewModel array.
+ * Maps canonical materialized records without deriving diagnostic relationships.
+ * Frontier membership comes exclusively from frontier.member_claim_ids.
  */
 export function adaptDiagnosticGraphForRender(
   viewModel: DiagnosticGraphViewModel,
@@ -112,6 +123,18 @@ export function adaptDiagnosticGraphForRender(
   const claimIds = new Set(viewModel.claims.map(claim => claim.claim_id));
   const inferenceIds = new Set(viewModel.inferenceSteps.map(step => step.inference_step_id));
   const breakpointCanonicalIds = new Set(viewModel.breakpoints.map(item => item.breakpoint_id));
+  const frontierMemberIds = new Set(viewModel.frontier.member_claim_ids);
+  const frontier: DiagnosticFrontierRenderItem = {
+    id: 'defendability-frontier',
+    frontier: {
+      ...viewModel.frontier,
+      member_claim_ids: [...viewModel.frontier.member_claim_ids],
+      active_adjudication_refs: [...viewModel.frontier.active_adjudication_refs],
+      explanation_trace: viewModel.frontier.explanation_trace.map(item => ({ ...item })),
+    },
+    visibleMemberClaimNodeIds: viewModel.frontier.member_claim_ids.filter(id => claimIds.has(id)).map(claimNodeId),
+    unavailableMemberClaimIds: viewModel.frontier.member_claim_ids.filter(id => !claimIds.has(id)),
+  };
   const downstreamEffects: DiagnosticDownstreamEffectRenderItem[] = viewModel.downstreamEffects.map((effect, index) => {
     const id = `downstream:${effect.failure_ref}:${effect.target_claim_id}:${index}`;
     return {
@@ -152,6 +175,7 @@ export function adaptDiagnosticGraphForRender(
       position: { x: 40, y: 40 + index * 170 },
       claim: { ...claim },
       downstreamEffectIds: downstreamEffects.filter(effect => effect.downstreamEffect.target_claim_id === claim.claim_id).map(effect => effect.id),
+      isFrontierMember: frontierMemberIds.has(claim.claim_id),
     })),
     ...viewModel.inferenceSteps.map((inferenceStep, index): DiagnosticInferenceRenderNode => ({
       id: inferenceNodeId(inferenceStep.inference_step_id),
@@ -236,5 +260,5 @@ export function adaptDiagnosticGraphForRender(
     }
   });
 
-  return { nodes, edges, unavailableSourceReferences, unavailableTransitionReferences, breakpoints, downstreamEffects, unavailableDiagnosticReferences };
+  return { nodes, edges, unavailableSourceReferences, unavailableTransitionReferences, breakpoints, downstreamEffects, frontier, unavailableDiagnosticReferences };
 }

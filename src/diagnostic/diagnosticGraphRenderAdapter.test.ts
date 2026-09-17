@@ -195,4 +195,60 @@ describe('adaptDiagnosticGraphForRender', () => {
       'transition:input-1:step-rich:claim-supported:1',
     ]);
   });
+
+  it('materializes an empty REVIEW_REQUIRED frontier without inference from claims, H_e, downstream, or compatibility data', () => {
+    const model = richModel();
+    model.claims.forEach(claim => { claim.def_e_value = 'TRUE'; });
+    model.frontier.member_claim_ids = [];
+    model.frontier.frontier_cardinality = 0;
+    model.frontier.frontier_status = 'REVIEW_REQUIRED';
+    model.compatibilityMaximums = [{ scope_id: 'scope-rich', route_or_path_ref: null, claim_id: 'claim-supported', maximum_kind: 'TRUE_GLOBAL_MAXIMUM', basis: 'Independent materialized record.' }];
+    const rendered = adaptDiagnosticGraphForRender(model);
+    expect(rendered.frontier).toMatchObject({ id: 'defendability-frontier', frontier: { member_claim_ids: [], frontier_cardinality: 0, frontier_status: 'REVIEW_REQUIRED' }, visibleMemberClaimNodeIds: [], unavailableMemberClaimIds: [] });
+    expect(rendered.nodes.filter(node => node.kind === 'CLAIM').every(node => !node.isFrontierMember)).toBe(true);
+    expect(rendered.edges).toHaveLength(1);
+    expect(rendered.downstreamEffects).toHaveLength(1);
+  });
+
+  it('uses only literal member_claim_ids for one or multiple frontier badges and preserves order', () => {
+    const model = richModel();
+    model.frontier.member_claim_ids = ['claim-affected', 'claim-supported'];
+    model.frontier.frontier_cardinality = 2;
+    model.compatibilityMaximums = [{ scope_id: 'scope-rich', route_or_path_ref: null, claim_id: 'unrelated', maximum_kind: 'ROUTE_LOCAL_MAXIMUM', basis: 'Separate record.' }];
+    const rendered = adaptDiagnosticGraphForRender(model);
+    expect(rendered.frontier.frontier.member_claim_ids).toEqual(['claim-affected', 'claim-supported']);
+    expect(rendered.frontier.visibleMemberClaimNodeIds).toEqual(['claim:claim-affected', 'claim:claim-supported']);
+    expect(rendered.nodes.filter(node => node.kind === 'CLAIM' && node.isFrontierMember).map(node => node.canonicalId)).toEqual(['claim-supported', 'claim-affected']);
+  });
+
+  it('reports an unavailable member without inventing a node or recalculating cardinality', () => {
+    const model = richModel();
+    model.frontier.member_claim_ids = ['claim-missing'];
+    model.frontier.frontier_cardinality = 99;
+    const rendered = adaptDiagnosticGraphForRender(model);
+    expect(rendered.frontier.frontier.member_claim_ids).toEqual(['claim-missing']);
+    expect(rendered.frontier.frontier.frontier_cardinality).toBe(99);
+    expect(rendered.frontier.visibleMemberClaimNodeIds).toEqual([]);
+    expect(rendered.frontier.unavailableMemberClaimIds).toEqual(['claim-missing']);
+    expect(rendered.nodes.some(node => node.canonicalId === 'claim-missing')).toBe(false);
+  });
+
+  it('copies the complete frontier and ordered trace deterministically without mutation', () => {
+    const model = richModel();
+    model.frontier.explanation_trace = [
+      { sequence: 2, trace_kind: 'FRONTIER_DECISION', subject_ref: 'claim-supported', rule_ref: 'rule-2', message: 'Second array entry.' },
+      { sequence: 1, trace_kind: 'ORIGIN', subject_ref: null, rule_ref: null, message: 'First sequence value.' },
+    ];
+    const before = structuredClone(model);
+    const first = adaptDiagnosticGraphForRender(model);
+    const second = adaptDiagnosticGraphForRender(model);
+    expect(first.frontier).toEqual(second.frontier);
+    expect(first.frontier.frontier).toEqual(model.frontier);
+    expect(first.frontier.frontier).not.toBe(model.frontier);
+    expect(first.frontier.frontier.member_claim_ids).not.toBe(model.frontier.member_claim_ids);
+    expect(first.frontier.frontier.explanation_trace).not.toBe(model.frontier.explanation_trace);
+    expect(first.frontier.frontier.explanation_trace.map(item => item.sequence)).toEqual([2, 1]);
+    expect(model).toEqual(before);
+  });
+
 });
