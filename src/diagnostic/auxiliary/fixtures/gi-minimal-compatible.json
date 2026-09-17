@@ -1,0 +1,1 @@
+{"graph_ref":"graph-minimal","graph_version":"1","entities":[{"id":"provenance-1","canonical_type":"ENT-STRUCTURAL","label":"Explicit structural provenance"},{"id":"claim-extra","canonical_type":"ENT-CLAIM","label":"Auxiliary-only claim"},{"id":"claim-1"},{"id":"claim-10"}]}

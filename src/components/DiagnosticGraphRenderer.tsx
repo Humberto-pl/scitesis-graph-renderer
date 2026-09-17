@@ -10,6 +10,8 @@ import type {
 } from '../diagnostic/diagnosticGraphRenderAdapter';
 import type { DiagnosticTracePanelModel } from '../diagnostic/diagnosticTracePanelModel';
 import type { TraceItem } from '../diagnostic/types';
+import { resolveAuxiliaryReference } from '../diagnostic/auxiliary/context';
+import type { AuxiliaryResolvedEntity, DiagnosticAuxiliaryContext, ReferenceResolution } from '../diagnostic/auxiliary/types';
 
 function nodeLabel(node: DiagnosticRenderNode) {
   if (node.kind === 'CLAIM') {
@@ -44,29 +46,42 @@ function FrontierInspector({ item }: { item: DiagnosticFrontierRenderItem }) {
   return <aside className="diagnostic-inspector frontier-inspector" aria-labelledby="frontier-inspector-title"><h2 id="frontier-inspector-title">DEFENDABILITY FRONTIER</h2><dl><dt>Scope ID</dt><dd>{value.scope_id}</dd><dt>Evaluation state ID</dt><dd>{value.evaluation_state_id}</dd><dt>Member claim IDs</dt><dd>{arrayValue(value.member_claim_ids)}</dd><dt>Frontier cardinality</dt><dd>{value.frontier_cardinality}</dd><dt>Graph version</dt><dd>{value.graph_version}</dd><dt>Diagnostic rule version</dt><dd>{value.diagnostic_rule_version}</dd><dt>Active adjudication refs</dt><dd>{arrayValue(value.active_adjudication_refs)}</dd><dt>Frontier status</dt><dd>{value.frontier_status}</dd><dt>Unavailable member claim IDs</dt><dd>{arrayValue(item.unavailableMemberClaimIds)}</dd></dl><ExplanationTrace trace={value.explanation_trace} /></aside>;
 }
 
-function ReferenceGroup({ label, values }: { label: string; values: string[] }) {
-  return <section className="trace-reference-group" aria-label={label}><h3>{label}</h3><pre>{arrayValue(values)}</pre>{values.length > 0 && <small>Referencias literales; no resueltas en esta vista.</small>}</section>;
+function Resolution({ resolution, select }: { resolution: ReferenceResolution; select: (entity: AuxiliaryResolvedEntity) => void }) {
+  return <li><span>Ref: <code>{resolution.ref}</code></span><span>Status: <strong>{resolution.status}</strong></span>
+    {resolution.status === 'RESOLVED' && <><span>Artifact: {resolution.artifact}</span>{resolution.entity.kind && <span>Type: {resolution.entity.kind}</span>}{resolution.entity.label && <span>Label: {resolution.entity.label}</span>}{resolution.entity.text && <span>Text: {resolution.entity.text}</span>}<button type="button" onClick={() => select(resolution.entity)}>Inspeccionar referencia {resolution.ref}</button></>}
+    {resolution.status === 'AMBIGUOUS' && <span>Matches: {resolution.matches.map(match => match.artifact).join(', ')}</span>}
+    {resolution.status === 'AUXILIARY_MISMATCH' && <span>Artifacts: {resolution.artifacts.join(', ')}</span>}
+  </li>;
 }
 
-function TracePanel({ model }: { model: DiagnosticTracePanelModel }) {
+function ReferenceGroup({ label, values, context, select }: { label: string; values: string[]; context?: DiagnosticAuxiliaryContext; select: (entity: AuxiliaryResolvedEntity) => void }) {
+  return <section className="trace-reference-group" aria-label={label}><h3>{label}</h3><pre>{arrayValue(values)}</pre>{values.length > 0 && <><ul className="reference-resolutions">{values.map((value, index) => <Resolution key={`${value}:${index}`} resolution={resolveAuxiliaryReference(value, context)} select={select} />)}</ul><small>Referencias literales; no resueltas en esta vista.</small></>}</section>;
+}
+
+function TracePanel({ model, context, select }: { model: DiagnosticTracePanelModel; context?: DiagnosticAuxiliaryContext; select: (entity: AuxiliaryResolvedEntity) => void }) {
   return <section className="trace-panel" aria-labelledby="trace-panel-title">
     <h2 id="trace-panel-title">TRACE / REFERENCES</h2>
     <p className="trace-source"><strong>Selected source</strong> {model.sourceType}: <code>{model.sourceId}</code></p>
     <ExplanationTrace trace={model.explanationTrace} />
-    <ReferenceGroup label="Provenance refs" values={model.provenanceRefs} />
-    <ReferenceGroup label="Adjudication refs" values={model.adjudicationRefs} />
-    <ReferenceGroup label="Diagnostic condition refs" values={model.diagnosticConditionRefs} />
-    <ReferenceGroup label="Defeater refs" values={model.defeaterRefs} />
-    <ReferenceGroup label="Alternative route refs" values={model.alternativeRouteRefs} />
-    {model.otherRefs.map(group => <ReferenceGroup key={group.kind} label={group.kind} values={group.refs} />)}
+    <ReferenceGroup label="Provenance refs" values={model.provenanceRefs} context={context} select={select} />
+    <ReferenceGroup label="Adjudication refs" values={model.adjudicationRefs} context={context} select={select} />
+    <ReferenceGroup label="Diagnostic condition refs" values={model.diagnosticConditionRefs} context={context} select={select} />
+    <ReferenceGroup label="Defeater refs" values={model.defeaterRefs} context={context} select={select} />
+    <ReferenceGroup label="Alternative route refs" values={model.alternativeRouteRefs} context={context} select={select} />
+    {model.otherRefs.map(group => <ReferenceGroup key={group.kind} label={group.kind} values={group.refs} context={context} select={select} />)}
     {model.literalFields.length > 0 && <section className="trace-literal-fields"><h3>Canonical fields</h3><dl>{model.literalFields.map(field => <Fragment key={field.name}><dt>{field.name}</dt><dd>{nullableValue(field.value)}</dd></Fragment>)}</dl></section>}
   </section>;
 }
 
+function AuxiliaryInspector({ entity, close }: { entity: AuxiliaryResolvedEntity; close: () => void }) {
+  return <aside className="diagnostic-inspector auxiliary-reference-inspector" aria-labelledby="auxiliary-reference-title"><h2 id="auxiliary-reference-title">AUXILIARY REFERENCE</h2><button type="button" onClick={close}>Cerrar referencia auxiliar</button><dl><dt>Ref/ID</dt><dd>{entity.id}</dd><dt>Artifact</dt><dd>{entity.artifact}</dd><dt>Artifact ref</dt><dd>{entity.artifactRef}</dd><dt>Artifact version</dt><dd>{entity.artifactVersion}</dd>{entity.kind && <><dt>Entity kind/type</dt><dd>{entity.kind}</dd></>}{entity.label && <><dt>Canonical label</dt><dd>{entity.label}</dd></>}{entity.text && <><dt>Canonical text</dt><dd>{entity.text}</dd></>}</dl><details><summary>Detalles auxiliares</summary><pre>{JSON.stringify(entity.raw, null, 2)}</pre></details></aside>;
+}
+
 type Selection = { type: DiagnosticTracePanelModel['sourceType']; id: string };
 
-export function DiagnosticGraphRenderer({ model }: { model: DiagnosticGraphRenderModel }) {
+export function DiagnosticGraphRenderer({ model, auxiliaryContext }: { model: DiagnosticGraphRenderModel; auxiliaryContext?: DiagnosticAuxiliaryContext }) {
   const [selection, setSelection] = useState<Selection>();
+  const [auxiliarySelection, setAuxiliarySelection] = useState<AuxiliaryResolvedEntity>();
   const selectedEdge = selection?.type === 'TRANSITION' ? model.edges.find(edge => edge.transitionKey === selection.id) : undefined;
   const selectedBreakpoint = selection?.type === 'BREAKPOINT' ? model.breakpoints.find(item => item.id === selection.id) : undefined;
   const selectedDownstream = selection?.type === 'DOWNSTREAM' ? model.downstreamEffects.find(item => item.id === selection.id) : undefined;
@@ -94,7 +109,8 @@ export function DiagnosticGraphRenderer({ model }: { model: DiagnosticGraphRende
         {selectedBreakpoint && <BreakpointInspector item={selectedBreakpoint} downstream={model.downstreamEffects.filter(effect => selectedBreakpoint.downstreamEffectIds.includes(effect.id))} selectDownstream={selectDownstream} />}
         {selectedDownstream && <DownstreamInspector item={selectedDownstream} relatedBreakpoint={model.breakpoints.find(item => item.id === selectedDownstream.relatedBreakpointId)} selectBreakpoint={selectBreakpoint} />}
         {selectedFrontier && <FrontierInspector item={selectedFrontier} />}
-        {selectedTrace && <TracePanel model={selectedTrace} />}
+        {selectedTrace && <TracePanel model={selectedTrace} context={auxiliaryContext} select={setAuxiliarySelection} />}
+        {auxiliarySelection && <AuxiliaryInspector entity={auxiliarySelection} close={() => setAuxiliarySelection(undefined)} />}
       </div>}
     </div>
   </main>;
