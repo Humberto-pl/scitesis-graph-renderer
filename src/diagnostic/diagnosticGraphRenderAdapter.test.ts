@@ -109,6 +109,81 @@ describe('adaptDiagnosticGraphForRender', () => {
     expect(model).toEqual(before);
   });
 
+  it('maps breakpoints and downstream effects 1:1 without inferring either collection', () => {
+    const model = richModel();
+    const rendered = adaptDiagnosticGraphForRender(model);
+    expect(rendered.breakpoints).toHaveLength(model.breakpoints.length);
+    expect(rendered.downstreamEffects).toHaveLength(model.downstreamEffects.length);
+
+    model.breakpoints = [];
+    model.downstreamEffects = [];
+    model.claims[1].def_e_value = 'FALSE';
+    model.inferenceSteps[0].active_state = 'INACTIVE';
+    model.transitions = [];
+    const empty = adaptDiagnosticGraphForRender(model);
+    expect(empty.breakpoints).toEqual([]);
+    expect(empty.downstreamEffects).toEqual([]);
+  });
+
+  it('preserves every breakpoint field and explicit trace order in an independent copy', () => {
+    const model = richModel();
+    model.breakpoints[0].explanation_trace = [
+      { sequence: 2, trace_kind: 'OTHER', subject_ref: null, rule_ref: null, message: 'second array item' },
+      { sequence: 1, trace_kind: 'ORIGIN', subject_ref: 'origin', rule_ref: 'rule', message: 'first sequence value' },
+    ];
+    const item = adaptDiagnosticGraphForRender(model).breakpoints[0];
+    expect(item).toMatchObject({ id: 'breakpoint:breakpoint-1', canonicalId: 'breakpoint-1', inferenceNodeId: 'inference:step-rich', targetClaimNodeId: 'claim:claim-affected' });
+    expect(item.breakpoint).toEqual(model.breakpoints[0]);
+    expect(item.breakpoint).not.toBe(model.breakpoints[0]);
+    expect(item.breakpoint.explanation_trace).not.toBe(model.breakpoints[0].explanation_trace);
+    expect(item.breakpoint.explanation_trace.map(trace => trace.message)).toEqual(['second array item', 'first sequence value']);
+  });
+
+  it('preserves downstream states and fields literally, including UNKNOWN and NOT_AFFECTED', () => {
+    const model = richModel();
+    model.downstreamEffects[0].affected_state = 'UNKNOWN';
+    model.downstreamEffects[0].adjudication_status = 'REVIEW_REQUIRED';
+    model.downstreamEffects.push({ ...structuredClone(model.downstreamEffects[0]), failure_ref: 'other', affected_state: 'NOT_AFFECTED', propagation_reason: null });
+    const rendered = adaptDiagnosticGraphForRender(model);
+    expect(rendered.downstreamEffects).toHaveLength(2);
+    expect(rendered.downstreamEffects.map(item => item.id)).toEqual([
+      'downstream:breakpoint-1:claim-affected:0',
+      'downstream:other:claim-affected:1',
+    ]);
+    expect(rendered.downstreamEffects[0].downstreamEffect).toEqual(model.downstreamEffects[0]);
+    expect(rendered.downstreamEffects[0].downstreamEffect).toMatchObject({ affected_state: 'UNKNOWN', adjudication_status: 'REVIEW_REQUIRED', lost_viable_derivation_ids: ['route-blocked'], remaining_viable_derivation_ids: [], required_dependency_refs: ['step-rich'], alternative_route_refs: ['route-alternative'], propagation_reason: 'Canonical propagation result.' });
+    expect(rendered.downstreamEffects[1].downstreamEffect).toMatchObject({ affected_state: 'NOT_AFFECTED', propagation_reason: null });
+    expect(rendered.nodes.find(node => node.kind === 'CLAIM' && node.canonicalId === 'claim-affected')).toMatchObject({ downstreamEffectIds: rendered.downstreamEffects.map(item => item.id) });
+  });
+
+  it('retains multiple breakpoints on one step and relates records only by explicit id equality', () => {
+    const model = richModel();
+    model.breakpoints.push({ ...structuredClone(model.breakpoints[0]), breakpoint_id: 'breakpoint-2' });
+    model.downstreamEffects.push({ ...structuredClone(model.downstreamEffects[0]), failure_ref: 'other' });
+    const rendered = adaptDiagnosticGraphForRender(model);
+    expect(rendered.breakpoints).toHaveLength(2);
+    expect(rendered.nodes.find(node => node.kind === 'INFERENCE_STEP')).toMatchObject({ breakpointIds: ['breakpoint:breakpoint-1', 'breakpoint:breakpoint-2'] });
+    expect(rendered.breakpoints[0].downstreamEffectIds).toEqual(['downstream:breakpoint-1:claim-affected:0']);
+    expect(rendered.breakpoints[1].downstreamEffectIds).toEqual([]);
+    expect(rendered.downstreamEffects.map(item => item.relatedBreakpointId)).toEqual(['breakpoint:breakpoint-1', null]);
+  });
+
+  it('reports unresolved visual references without inventing nodes', () => {
+    const model = richModel();
+    model.breakpoints[0].breakpoint_step_id = 'missing-step';
+    model.breakpoints[0].affected_transition_target_id = 'missing-breakpoint-target';
+    model.downstreamEffects[0].target_claim_id = 'missing-downstream-target';
+    model.downstreamEffects[0].failure_ref = 'another-kind-of-failure';
+    const rendered = adaptDiagnosticGraphForRender(model);
+    expect(rendered.nodes.some(node => node.canonicalId.startsWith('missing-'))).toBe(false);
+    expect(rendered.unavailableDiagnosticReferences.map(reference => [reference.role, reference.canonicalId])).toEqual([
+      ['BREAKPOINT_STEP', 'missing-step'],
+      ['BREAKPOINT_TARGET', 'missing-breakpoint-target'],
+      ['DOWNSTREAM_TARGET', 'missing-downstream-target'],
+      ['FAILURE_REF', 'another-kind-of-failure'],
+    ]);
+  });
+
   it('gives multiple materialized transitions stable, distinct keys without grouping them semantically', () => {
     const model = richModel();
     model.transitions.push(structuredClone(model.transitions[0]));

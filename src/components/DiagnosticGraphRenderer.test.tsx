@@ -76,4 +76,54 @@ describe('DiagnosticGraphRenderer', () => {
     fireEvent.click(screen.getByRole('button', { name: 'STEP_TO_TARGET de transition:input-1:step-minimal:claim-supported:1' }));
     expect(screen.getByRole('complementary')).toHaveTextContent('step-minimal');
   });
+
+  it('selects a breakpoint and displays its literal fields and ordered explanation trace', () => {
+    const viewModel = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(richFixture)));
+    viewModel.breakpoints[0].explanation_trace = [{ sequence: 7, trace_kind: 'LOST_ROUTE', subject_ref: 'step-rich', rule_ref: 'rule-7', message: 'Materialized breakpoint trace.' }];
+    const model = adaptDiagnosticGraphForRender(viewModel);
+    render(<DiagnosticGraphRenderer model={model} />);
+    expect(screen.getByText('Breakpoints: 1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar breakpoint breakpoint-1' }));
+    const inspector = screen.getByRole('complementary');
+    expect(within(inspector).getByRole('heading', { name: 'BREAKPOINT' })).toBeInTheDocument();
+    for (const value of ['breakpoint-1', 'scope-rich', 'route-blocked', 'BLOCKING_DIAGNOSTIC_CONDITION', 'TRUE', 'RESOLVED', 'Materialized breakpoint trace.', 'LOST_ROUTE', 'rule-7']) expect(within(inspector).getByText(value)).toBeInTheDocument();
+    expect(within(inspector).getByText('Route/path ref')).toBeInTheDocument();
+    expect(within(inspector).getByText('First break on route')).toBeInTheDocument();
+  });
+
+  it('selects every downstream record, preserving state, status, arrays, nullable reason, and explicit navigation', () => {
+    const viewModel = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(richFixture)));
+    viewModel.downstreamEffects[0].affected_state = 'UNKNOWN';
+    viewModel.downstreamEffects[0].adjudication_status = 'REVIEW_REQUIRED';
+    viewModel.downstreamEffects[0].explanation_trace = [{ sequence: 1, trace_kind: 'OTHER', subject_ref: null, rule_ref: null, message: 'Materialized downstream trace.' }];
+    viewModel.downstreamEffects.push({ ...structuredClone(viewModel.downstreamEffects[0]), failure_ref: 'other', affected_state: 'NOT_AFFECTED', propagation_reason: null });
+    const model = adaptDiagnosticGraphForRender(viewModel);
+    const before = structuredClone(model);
+    render(<DiagnosticGraphRenderer model={model} />);
+    expect(screen.getByText('Downstream: 2')).toBeInTheDocument();
+    const selectors = screen.getAllByRole('button', { name: /Inspeccionar downstream effect/ });
+    expect(selectors).toHaveLength(2);
+    fireEvent.click(selectors[0]);
+    let inspector = screen.getByRole('complementary');
+    expect(within(inspector).getByRole('heading', { name: 'DOWNSTREAM EFFECT' })).toBeInTheDocument();
+    for (const value of ['breakpoint-1', 'claim-affected', 'UNKNOWN', 'REVIEW_REQUIRED', '["route-blocked"]', '[]', '["step-rich"]', '["route-alternative"]', 'Canonical propagation result.', 'Materialized downstream trace.']) expect(within(inspector).getByText(value)).toBeInTheDocument();
+    fireEvent.click(within(inspector).getByRole('button', { name: 'Ver breakpoint breakpoint-1' }));
+    expect(screen.getByRole('heading', { name: 'BREAKPOINT' })).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: /Inspeccionar downstream effect/ })[1]);
+    inspector = screen.getByRole('complementary');
+    expect(within(inspector).getByText('NOT_AFFECTED')).toBeInTheDocument();
+    expect(within(inspector).getAllByText('null').length).toBeGreaterThan(0);
+    expect(within(inspector).queryByRole('button', { name: /Ver breakpoint/ })).not.toBeInTheDocument();
+    expect(model).toEqual(before);
+  });
+
+  it('does not render breakpoint or downstream selectors when materialized arrays are empty', () => {
+    const viewModel = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(richFixture)));
+    viewModel.breakpoints = [];
+    viewModel.downstreamEffects = [];
+    const model = adaptDiagnosticGraphForRender(viewModel);
+    render(<DiagnosticGraphRenderer model={model} />);
+    expect(screen.queryByRole('button', { name: /Inspeccionar breakpoint/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Inspeccionar downstream/ })).not.toBeInTheDocument();
+  });
 });
