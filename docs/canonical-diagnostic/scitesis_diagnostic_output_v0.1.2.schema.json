@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scitesis.local/schemas/scitesis_diagnostic_output_v0.1.2.schema.json",
+  "title": "SciTesis Diagnostic Output v0.1.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifact_type", "contract_version", "run", "graph_ref", "diagnostic_graph_ref", "scope", "inference_states", "claim_states", "H_e", "routes", "breakpoints", "downstream_effects", "frontier", "compatibility_maximums", "review_required_items", "explanation", "trace"],
+  "properties": {
+    "artifact_type": { "const": "DIAGNOSTIC_OUTPUT" },
+    "contract_version": { "const": "0.1.2" },
+    "run": { "$ref": "#/$defs/runMetadata" },
+    "graph_ref": { "$ref": "#/$defs/artifactRef" },
+    "diagnostic_graph_ref": { "$ref": "#/$defs/artifactRef" },
+    "scope": { "$ref": "#/$defs/scope" },
+    "inference_states": { "type": "array", "items": { "$ref": "#/$defs/inferenceState" } },
+    "claim_states": { "type": "array", "items": { "$ref": "#/$defs/claimState" } },
+    "H_e": { "type": "array", "items": { "$ref": "#/$defs/hypothesis" } },
+    "routes": { "type": "array", "items": { "$ref": "#/$defs/route" } },
+    "breakpoints": { "type": "array", "items": { "$ref": "#/$defs/breakpoint" } },
+    "downstream_effects": { "type": "array", "items": { "$ref": "#/$defs/downstreamEffect" } },
+    "frontier": { "type": "array", "items": { "$ref": "#/$defs/frontierItem" } },
+    "compatibility_maximums": { "type": "array", "items": { "$ref": "#/$defs/compatibilityMaximum" } },
+    "review_required_items": { "type": "array", "items": { "$ref": "#/$defs/reviewRequiredItem" } },
+    "explanation": { "$ref": "#/$defs/explanation" },
+    "trace": { "type": "array", "items": { "$ref": "#/$defs/traceEvent" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "nullableId": { "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+    "defendibility": { "enum": ["TRUE", "FALSE", "UNKNOWN"] },
+    "activity": { "enum": ["ACTIVE", "INACTIVE", "UNKNOWN"] },
+    "reviewStatus": { "enum": ["RESOLVED", "REVIEW_REQUIRED"] },
+    "artifactRef": {
+      "type": "object", "additionalProperties": false, "required": ["artifact_id", "uri", "sha256"],
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/id" },
+        "uri": { "type": ["string", "null"] },
+        "sha256": { "type": ["string", "null"], "pattern": "^[A-Fa-f0-9]{64}$" }
+      }
+    },
+    "runMetadata": {
+      "type": "object", "additionalProperties": false, "required": ["run_id", "generated_at", "diagnostic_engine", "diagnostic_engine_version"],
+      "properties": {
+        "run_id": { "$ref": "#/$defs/id" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "diagnostic_engine": { "$ref": "#/$defs/id" },
+        "diagnostic_engine_version": { "$ref": "#/$defs/id" }
+      }
+    },
+    "scope": {
+      "type": "object", "additionalProperties": false, "required": ["root_claim_ids", "claim_ids", "inference_ids"],
+      "properties": {
+        "root_claim_ids": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+        "claim_ids": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+        "inference_ids": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true }
+      }
+    },
+    "stateBase": {
+      "type": "object", "required": ["Def_e", "Active_e", "review_status"],
+      "properties": {
+        "Def_e": { "$ref": "#/$defs/defendibility" },
+        "Active_e": { "$ref": "#/$defs/activity" },
+        "review_status": { "$ref": "#/$defs/reviewStatus" }
+      }
+    },
+    "inferenceState": {
+      "allOf": [
+        { "$ref": "#/$defs/stateBase" },
+        { "type": "object", "additionalProperties": false, "required": ["inference_id", "Def_e", "Active_e", "review_status", "reason_codes"], "properties": {
+          "inference_id": { "$ref": "#/$defs/id" }, "Def_e": { "$ref": "#/$defs/defendibility" }, "Active_e": { "$ref": "#/$defs/activity" }, "review_status": { "$ref": "#/$defs/reviewStatus" },
+          "reason_codes": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true }
+        } }
+      ]
+    },
+    "claimState": {
+      "allOf": [
+        { "$ref": "#/$defs/stateBase" },
+        { "type": "object", "additionalProperties": false, "required": ["claim_id", "Def_e", "Active_e", "review_status", "H_e_ids", "route_ids", "reason_codes"], "properties": {
+          "claim_id": { "$ref": "#/$defs/id" }, "Def_e": { "$ref": "#/$defs/defendibility" }, "Active_e": { "$ref": "#/$defs/activity" }, "review_status": { "$ref": "#/$defs/reviewStatus" },
+          "H_e_ids": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+          "route_ids": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+          "reason_codes": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true }
+        } }
+      ]
+    },
+    "hypothesis": {
+      "type": "object", "additionalProperties": false, "required": ["H_e_id", "claim_id", "inference_ids", "Def_e", "Active_e", "review_status"],
+      "properties": {
+        "H_e_id": { "$ref": "#/$defs/id" }, "claim_id": { "$ref": "#/$defs/id" },
+        "inference_ids": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+        "Def_e": { "$ref": "#/$defs/defendibility" }, "Active_e": { "$ref": "#/$defs/activity" }, "review_status": { "$ref": "#/$defs/reviewStatus" }
+      }
+    },
+    "derivationStep": {
+      "type": "object", "additionalProperties": false, "required": ["sequence", "inference_id", "premise_ids", "conclusion_id"],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 }, "inference_id": { "$ref": "#/$defs/id" },
+        "premise_ids": { "type": "array", "items": { "$ref": "#/$defs/id" } }, "conclusion_id": { "$ref": "#/$defs/id" }
+      }
+    },
+    "route": {
+      "type": "object", "additionalProperties": false, "required": ["route_id", "target_claim_id", "derivations", "Def_e", "Active_e", "review_status"],
+      "properties": {
+        "route_id": { "$ref": "#/$defs/id" }, "target_claim_id": { "$ref": "#/$defs/id" },
+        "derivations": { "type": "array", "items": { "$ref": "#/$defs/derivationStep" } },
+        "Def_e": { "$ref": "#/$defs/defendibility" }, "Active_e": { "$ref": "#/$defs/activity" }, "review_status": { "$ref": "#/$defs/reviewStatus" }
+      }
+    },
+    "breakpoint": {
+      "type": "object", "additionalProperties": false, "required": ["breakpoint_id", "subject_id", "subject_type", "route_id", "reason_code", "review_status"],
+      "properties": {
+        "breakpoint_id": { "$ref": "#/$defs/id" }, "subject_id": { "$ref": "#/$defs/id" }, "subject_type": { "enum": ["CLAIM", "INFERENCE"] },
+        "route_id": { "$ref": "#/$defs/nullableId" }, "reason_code": { "$ref": "#/$defs/id" }, "review_status": { "$ref": "#/$defs/reviewStatus" }
+      }
+    },
+    "downstreamEffect": {
+      "type": "object", "additionalProperties": false, "required": ["source_id", "affected_id", "effect", "path"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/id" }, "affected_id": { "$ref": "#/$defs/id" }, "effect": { "enum": ["DEACTIVATED", "DEFENDIBILITY_CHANGED", "REVIEW_REQUIRED"] },
+        "path": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1 }
+      }
+    },
+    "frontierItem": {
+      "type": "object", "additionalProperties": false, "required": ["claim_id", "reason_code", "review_status"],
+      "properties": { "claim_id": { "$ref": "#/$defs/id" }, "reason_code": { "$ref": "#/$defs/id" }, "review_status": { "$ref": "#/$defs/reviewStatus" } }
+    },
+    "compatibilityMaximum": {
+      "type": "object", "additionalProperties": false, "required": ["claim_id", "route_id"],
+      "properties": { "claim_id": { "$ref": "#/$defs/id" }, "route_id": { "$ref": "#/$defs/nullableId" } }
+    },
+    "reviewRequiredItem": {
+      "type": "object", "additionalProperties": false, "required": ["item_id", "subject_id", "reason_code", "message"],
+      "properties": { "item_id": { "$ref": "#/$defs/id" }, "subject_id": { "$ref": "#/$defs/id" }, "reason_code": { "$ref": "#/$defs/id" }, "message": { "type": "string", "minLength": 1 } }
+    },
+    "explanation": {
+      "type": "object", "additionalProperties": false, "required": ["summary", "reason_codes"],
+      "properties": { "summary": { "type": ["string", "null"] }, "reason_codes": { "type": "object", "additionalProperties": { "type": "string" } } }
+    },
+    "traceEvent": {
+      "type": "object", "additionalProperties": false, "required": ["sequence", "rule_id", "subject_id", "input_refs", "output_refs"],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 }, "rule_id": { "$ref": "#/$defs/id" }, "subject_id": { "$ref": "#/$defs/id" },
+        "input_refs": { "type": "array", "items": { "$ref": "#/$defs/id" } }, "output_refs": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    }
+  }
+}
