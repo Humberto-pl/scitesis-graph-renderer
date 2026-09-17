@@ -1,0 +1,1 @@
+{"diagnostic_graph_ref":"diagnostic-graph-minimal","diagnostic_graph_version":"1","entities":[{"id":"condition-1","type_id":"diagnostic_condition","label":"Explicit diagnostic condition"},{"id":"defeater-1","type_id":"diagnostic_defeater"},{"id":"diagnostic-extra","type_id":"diagnostic_condition"}]}
