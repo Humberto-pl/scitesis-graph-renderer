@@ -36,6 +36,9 @@
 .artifact-loader [role=alert] ul{margin:4px 0 0}
 @media(max-width:700px){#root{overflow:auto}.workspace-header{align-items:flex-start}.artifact-identity{order:3;flex-basis:100%;padding-left:0;border-left:0}.artifact-loader{margin-left:0}.local-processing{display:none}.shell>.workspace{min-height:620px;grid-template-columns:minmax(0,1fr)}}
 
+.view-switcher{display:flex;gap:4px}.view-switcher button{padding:5px 8px;border:1px solid #69758b;border-radius:4px;background:transparent;color:#fff}.view-switcher button.active{background:var(--graph-accent)}
+.diagnostic-shell{min-height:0;flex:1;display:flex;flex-direction:column}.diagnostic-note{margin:0;padding:7px 16px;border-bottom:1px solid #ccd2dc;background:#fff;font-size:12px}.diagnostic-canvas{min-height:520px;flex:1;background:#f7f9fc}.diagnostic-node{width:270px!important;text-align:left!important;border:2px solid #687487!important}.diagnostic-inference_step{border-style:double!important;border-width:4px!important}.diagnostic-node-content{display:grid;gap:6px}.diagnostic-node-content strong{font-size:11px}.diagnostic-node-content span{font-size:12px;overflow-wrap:anywhere}
+
 
 /* PR9B graph controls overlay */
 .graph-toolbar{position:absolute;z-index:10;top:12px;left:12px;display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;max-width:calc(100% - 24px);padding:6px 8px;background:rgba(255,255,255,.94);border:1px solid #bbc3cf;border-radius:5px;box-shadow:0 2px 8px #18223024;font-size:12px}
