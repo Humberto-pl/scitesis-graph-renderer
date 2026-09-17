@@ -1,0 +1,18 @@
+{
+  "diagnostic_graph_ref": "scitesis://pilot/PILOT-R01-RUN-001/GD-PROVISIONAL",
+  "diagnostic_graph_version": "SIMULATED-PROVISIONAL-R01-RUN-001-GD-v1",
+  "entities": [
+    {
+      "id": "GD-R01-AGE-CONDITION",
+      "type_id": "diagnostic_condition",
+      "label": "Age-scope diagnostic condition",
+      "text": "Literal provisional G_D condition referenced by BP-R01-AGE."
+    },
+    {
+      "id": "GD-R01-SOCIO-CONDITION",
+      "type_id": "diagnostic_condition",
+      "label": "Sociodemographic-scope diagnostic condition",
+      "text": "Literal provisional G_D condition referenced by BP-R01-SOCIO."
+    }
+  ]
+}

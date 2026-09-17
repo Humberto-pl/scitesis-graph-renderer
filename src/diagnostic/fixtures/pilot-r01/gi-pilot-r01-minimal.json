@@ -1,0 +1,12 @@
+{
+  "graph_ref": "scitesis://pilot/PILOT-R01-RUN-001/GI-PROVISIONAL",
+  "graph_version": "SIMULATED-PROVISIONAL-R01-RUN-001-GI-v1",
+  "entities": [
+    {
+      "id": "GI-R01-PROV-C1",
+      "canonical_type": "ENT-PROVENANCE",
+      "label": "Provisional source support for C1",
+      "text": "Literal provisional G_I reference used by the materialized C1 transition."
+    }
+  ]
+}
