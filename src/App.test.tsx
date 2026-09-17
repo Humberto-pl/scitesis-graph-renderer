@@ -23,6 +23,11 @@ describe('App artifact import integration', () => {
     await waitFor(() => expect(screen.getByText(new RegExp(`PRIMARY: Diagnostic Output · ${name}`))).toBeInTheDocument());
   };
 
+  it('shows the stabilized renderer version', () => {
+    render(<App />);
+    expect(screen.getByText('v0.2.0')).toBeInTheDocument();
+  });
+
   it('offers an explicit canonical Diagnostic Output route while retaining legacy', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
@@ -174,6 +179,10 @@ describe('App artifact import integration', () => {
     fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile({}, 'bad-gi.json')] } });
     await waitFor(() => expect(screen.getByText(/carga nueva fallida: UNSUPPORTED_SHAPE/)).toBeInTheDocument());
     expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2);
+
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(gi, 'gi-reloaded.json')] } });
+    await waitFor(() => expect(screen.queryByText(/carga nueva fallida: UNSUPPORTED_SHAPE/)).not.toBeInTheDocument());
+    expect(screen.getByText(/G_I:.*gi-reloaded\.json/)).toBeInTheDocument();
 
     const other = structuredClone(diagnostic);
     other.run_metadata.graph_ref = 'other-graph';

@@ -1,43 +1,69 @@
-# SciTesis Graph Renderer v0.1.1
+# SciTesis Graph Renderer v0.2.0
 
-Herramienta interna React/TypeScript para inspeccionar `Candidate + Diagnosis`. La transformación pura (`buildDiagnosticGraphViewModel`) no depende de React Flow; el layout determinista y la UI son capas separadas. Los fixtures de `src/fixtures` son exclusivamente demostrativos/de prueba y no reemplazan artefactos canónicos.
+**Status: STABILIZED DEVELOPMENT BASELINE — not production-ready or client-ready.**
 
-## Mapping del ViewModel
+Internal React/TypeScript viewer for inspecting already-materialized SciTesis graph artifacts. It keeps the legacy conceptual-simulator view separate from the canonical Diagnostic Output v0.1.2 view. The renderer presents diagnosis; it does not produce or reinterpret it.
 
-- `canonicalId` corresponde al `entityId` canónico de Candidate/Diagnosis y nunca es un ID inventado para la UI.
-- `state` corresponde a `defendibilityState`.
-- `gravity` corresponde a `severity`.
-- `maximumDefendableClaim` conserva la formulación textual disponible, mientras que `isMaximumDefendable` marca estructural e inequívocamente el nodo que representa ese máximo defendible.
-
-## Uso
+## Quick start
 
 ```sh
 npm install
 npm run dev
 ```
 
-## Contrato de entrada
+Quality checks:
 
-El renderer consume el contrato canónico de `Candidate Schema v0.8` y `Diagnosis` sin alterar su semántica.
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run build
+```
 
-Para claims, la composición canónica se representa mediante:
+## Supported artifacts
 
-- `composition_type`: `ATOMIC | COMPOSITE_SEPARABLE | COMPOSITE_INSEPARABLE`
-- `subclaims`: componentes explícitos del claim cuando corresponde
-- `aggregation_policy`: `NONE | COMPONENTWISE_RECOVERABLE`
+The user explicitly selects an artifact role before importing JSON.
 
-Solo un claim con `composition_type: COMPOSITE_SEPARABLE` habilita nodos `SUBCLAIM` y relaciones `DECOMPOSES_TO`. Los claims `ATOMIC` y `COMPOSITE_INSEPARABLE` permanecen indivisibles.
+**Primary**
 
-La compatibilidad con Candidate v0.7 se mantiene para claims simples sin estos campos opcionales.
+- Legacy Confirmed Simulated Graph (preserved compatibility pipeline).
+- Diagnostic Output v0.1.2 (visible diagnostic authority).
 
-## Interacción visual e invariantes semánticas
+**Optional auxiliary**
 
-La geometría interactiva está deliberadamente separada de la semántica canónica. El layout inicial se calcula de forma determinista para un mismo `GraphViewModel`; sus posiciones se copian a estado efímero de UI y los nodos pueden moverse libremente. **Restablecer layout** recupera esas posiciones deterministas sin recargar los artefactos, cambiar filtros o modificar la selección.
+- G_I minimum reader boundary (structural context).
+- G_D minimum reader boundary (diagnostic context).
 
-El drag solo actualiza coordenadas `x/y` de presentación: no altera Candidate, Diagnosis, IDs canónicos, tipos, estados, relaciones, rutas de soporte ni el máximo defendible. La conexión manual está deshabilitada, por lo que el renderer continúa siendo un inspector y no un editor semántico.
+G_I and G_D enrich exact-reference inspection only. They cannot add graph nodes, transitions, breakpoints, downstream effects, frontier members, or otherwise change the diagnostic render model. The repository has no complete executable G_I/G_D schemas; the deliberately narrow readers consume only the fields documented in [`src/diagnostic/auxiliary/README.md`](src/diagnostic/auxiliary/README.md). A future executable authority must replace—not inferentially expand—that boundary.
 
-Las etiquetas amigables de estados, relaciones y clases de nodo forman otra capa pura de presentación. El toggle **Mostrar códigos canónicos** permite añadir los códigos técnicos a la vista y el panel de detalle los conserva siempre; ningún label sustituye enums, `canonicalId` ni valores del dominio.
+## Import and local processing
 
-Al seleccionar un claim o subclaim, el resaltado recorre exclusivamente aristas ya presentes en el `GraphViewModel`. Limpiar la selección o pulsar el fondo restaura la vista completa y no crea inferencias ni relaciones.
+There is no heuristic auto-detection or sequential fallback among Legacy, Diagnostic Output, G_I, and G_D. `JsonFileInput` reads a selected local `.json` file (maximum 10 MB), parses it to `unknown`, and passes it to the explicitly selected contract loader. Invalid extension, size, JSON, or contract shape fails closed while the last valid artifact remains active.
 
-Las puntas de flecha expresan únicamente la dirección canónica `source → target` de cada relación, no causalidad. Los nodos `STATE` presentan una etiqueta amigable cuando el código es conocido y conservan un fallback seguro —además del código accesible mediante el toggle y el inspector— para estados futuros.
+Imports are processed in the browser. The import implementation has no backend upload and performs no network fetch.
+
+## Architecture
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for pipelines, authority boundaries, renderer-only IDs, invariants, and intentionally deferred work. The v0.2 baseline freezes the current import boundaries, diagnostic authority, auxiliary boundaries, and renderer semantics as a development baseline; it does not modify upstream canonical documents.
+
+## What this renderer does not do
+
+- extract PDFs;
+- construct IAM;
+- compile G_I;
+- generate G_D;
+- recalculate diagnosis;
+- decide `Def_e` or `Active_e`;
+- calculate or complete the defendability frontier;
+- repair a thesis;
+- replace human review.
+
+It also does not provide editing, persistence, export, search, AI summaries, production packaging, or general-purpose layout optimization.
+
+## PILOT-R01
+
+[`PILOT-R01`](src/diagnostic/fixtures/pilot-r01/README.md) is an experimental acceptance fixture marked **NOT FOR CLIENT DELIVERY**. It exercises the real ingestion-to-render pipeline, but does not establish production readiness, human review, PDF validation, or IAM validation.
+
+## Development limits / future work
+
+Intentionally deferred beyond v0.2: authoritative executable G_I/G_D schemas, a distinct compatibility-maximums UI, richer layout, production packaging, and expansion to a real pilot corpus. These are documented limits, not partially implemented features.

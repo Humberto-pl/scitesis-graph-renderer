@@ -55,7 +55,7 @@ function Resolution({ resolution, select }: { resolution: ReferenceResolution; s
 }
 
 function ReferenceGroup({ label, values, context, select }: { label: string; values: string[]; context?: DiagnosticAuxiliaryContext; select: (entity: AuxiliaryResolvedEntity) => void }) {
-  return <section className="trace-reference-group" aria-label={label}><h3>{label}</h3><pre>{arrayValue(values)}</pre>{values.length > 0 && <><ul className="reference-resolutions">{values.map((value, index) => <Resolution key={`${value}:${index}`} resolution={resolveAuxiliaryReference(value, context)} select={select} />)}</ul><small>Referencias literales; no resueltas en esta vista.</small></>}</section>;
+  return <section className="trace-reference-group" aria-label={label}><h3>{label}</h3><pre>{arrayValue(values)}</pre>{values.length > 0 && <><ul className="reference-resolutions">{values.map((value, index) => <Resolution key={`${value}:${index}`} resolution={resolveAuxiliaryReference(value, context)} select={select} />)}</ul><small>La referencia literal se conserva independientemente de su resolución auxiliar.</small></>}</section>;
 }
 
 function TracePanel({ model, context, select }: { model: DiagnosticTracePanelModel; context?: DiagnosticAuxiliaryContext; select: (entity: AuxiliaryResolvedEntity) => void }) {
