@@ -52,7 +52,7 @@
 .diagnostic-edge-source_to_step .react-flow__edge-path{stroke-dasharray:7 4}
 .diagnostic-edge-step_to_target .react-flow__edge-path{stroke-width:2.5}
 .diagnostic-edge.selected-transition .react-flow__edge-path{stroke:#334c78;stroke-width:4}
-.diagnostic-entity-list{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:6px 16px;border-bottom:1px solid #ccd2dc;background:#f7f9fc;font-size:12px}.diagnostic-entity-list button{flex:none;padding:4px 7px}
+.diagnostic-entity-list{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:6px 16px;border-bottom:1px solid #ccd2dc;background:#f7f9fc;font-size:12px}.diagnostic-entity-list button{flex:none;padding:4px 7px;color:#182230;background:#fff;border:1px solid #aeb8c6;border-radius:4px}.diagnostic-entity-list button:hover{background:#e8edf5;border-color:#687487}.diagnostic-entity-list button:focus-visible{outline:2px solid var(--graph-accent);outline-offset:2px}
 .diagnostic-missing-references{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;padding:7px 16px;border-bottom:1px solid #ccd2dc;background:#f3f4f6;font-size:12px}
 .diagnostic-missing-references ul{display:flex;gap:12px;margin:0;padding:0;list-style:none}
 .diagnostic-record-badge{width:max-content;padding:2px 6px;border:1px solid #596579;border-radius:9px;background:#f3f4f6;font-weight:700}
