@@ -1,0 +1,88 @@
+{
+  "schema_version": "0.1.2",
+  "run_metadata": {
+    "run_id": "run-minimal",
+    "graph_ref": "graph-minimal",
+    "graph_version": "1",
+    "diagnostic_graph_ref": "diagnostic-graph-minimal",
+    "diagnostic_graph_version": "1",
+    "diagnostic_graph_origin": "PROVIDED",
+    "evaluation_state_id": "evaluation-minimal",
+    "diagnostic_rule_version": "1",
+    "simulator_or_engine": "DIAGNOSTIC_ENGINE",
+    "implementation_version": "1",
+    "active_adjudication_refs": [],
+    "active_diagnostic_condition_refs": [],
+    "active_defeater_refs": []
+  },
+  "scope": {
+    "scope_id": "scope-minimal",
+    "target_claim_ids": ["claim-minimal"],
+    "objective_refs": [],
+    "component_refs": [],
+    "scope_payload": null,
+    "scope_status": "REVIEW_REQUIRED",
+    "scope_notes": null
+  },
+  "inference_step_states": [
+    {
+      "inference_step_id": "step-minimal",
+      "active_state": "UNKNOWN",
+      "activity_adjudication_status": "REVIEW_REQUIRED",
+      "required_inputs_satisfied": "UNKNOWN",
+      "applicable": "UNKNOWN",
+      "defeated": "UNKNOWN",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [],
+      "rule_version": "1",
+      "explanation_trace": []
+    }
+  ],
+  "claim_defendibility": [
+    {
+      "claim_id": "claim-minimal",
+      "scope_id": "scope-minimal",
+      "def_e_value": "UNKNOWN",
+      "defendibility_state": null,
+      "adjudication_status": "REVIEW_REQUIRED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [],
+      "rule_version": "1"
+    }
+  ],
+  "viable_dependency_view": {
+    "view_id": "view-minimal",
+    "scope_id": "scope-minimal",
+    "evaluation_state_id": "evaluation-minimal",
+    "transitions": [],
+    "view_status": "REVIEW_REQUIRED",
+    "derivation_rule_version": "1"
+  },
+  "breakpoints": [],
+  "downstream_effects": [],
+  "defendability_frontier": {
+    "scope_id": "scope-minimal",
+    "evaluation_state_id": "evaluation-minimal",
+    "member_claim_ids": [],
+    "frontier_cardinality": 0,
+    "graph_version": "1",
+    "diagnostic_rule_version": "1",
+    "active_adjudication_refs": [],
+    "frontier_status": "REVIEW_REQUIRED",
+    "explanation_trace": []
+  },
+  "compatibility_maximums": [],
+  "review_required_items": [],
+  "explanation_summary": {
+    "summary_status": "PARTIAL_REVIEW_REQUIRED",
+    "primary_findings": [],
+    "frontier_summary": "No resolved frontier members.",
+    "breakpoint_summary": "No adjudicated breakpoints.",
+    "propagation_summary": "No adjudicated downstream effects.",
+    "review_required_summary": []
+  }
+}
