@@ -6,6 +6,9 @@ import gi from './diagnostic/auxiliary/fixtures/gi-minimal-compatible.json';
 import gd from './diagnostic/auxiliary/fixtures/gd-minimal-compatible.json';
 import gdMismatch from './diagnostic/auxiliary/fixtures/gd-mismatch.json';
 import diagnostic from './diagnostic/fixtures/diagnostic-output-v0.1.2-viewmodel-rich.json';
+import pilot from './diagnostic/fixtures/pilot-r01/diagnostic-output-v0.1.2-pilot-r01.json';
+import pilotGi from './diagnostic/fixtures/pilot-r01/gi-pilot-r01-minimal.json';
+import pilotGd from './diagnostic/fixtures/pilot-r01/gd-pilot-r01-minimal.json';
 
 const artifactFile = (artifact: unknown, name: string) => ({
   name,
@@ -14,6 +17,12 @@ const artifactFile = (artifact: unknown, name: string) => ({
 });
 
 describe('App artifact import integration', () => {
+  const loadPilot = async (name = 'diagnostic-output-v0.1.2-pilot-r01.json') => {
+    fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
+    fireEvent.change(screen.getByLabelText('Cargar Diagnostic Output'), { target: { files: [artifactFile(pilot, name)] } });
+    await waitFor(() => expect(screen.getByText(new RegExp(`PRIMARY: Diagnostic Output · ${name}`))).toBeInTheDocument());
+  };
+
   it('offers an explicit canonical Diagnostic Output route while retaining legacy', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
@@ -173,5 +182,65 @@ describe('App artifact import integration', () => {
     await waitFor(() => expect(screen.getAllByText('LOADED_MISMATCH')).toHaveLength(2));
     fireEvent.change(screen.getByLabelText('Cargar Diagnostic Output'), { target: { files: [artifactFile(diagnostic, 'original.json')] } });
     await waitFor(() => expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2));
+  });
+
+  it('imports PILOT-R01 through App and exposes its mixed states and empty frontier inspectors', async () => {
+    render(<App />);
+    await loadPilot();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Detalles'));
+    expect(screen.getByText('PILOT-R01-RUN-001')).toBeInTheDocument();
+    expect(screen.getByText('ID: C1')).toBeInTheDocument();
+    expect(screen.getByText('Def_e: TRUE')).toBeInTheDocument();
+    expect(screen.getAllByText('Def_e: UNKNOWN')).toHaveLength(3);
+    expect(screen.getAllByText('Def_e: FALSE')).toHaveLength(2);
+    expect(screen.getByText('Active_e: ACTIVE')).toBeInTheDocument();
+    expect(screen.getAllByText('Active_e: INACTIVE')).toHaveLength(2);
+    expect(screen.getAllByText('Active_e: UNKNOWN')).toHaveLength(3);
+    expect(screen.queryByText('Frontier member')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar defendability frontier' }));
+    const frontier = screen.getByRole('heading', { name: 'DEFENDABILITY FRONTIER' }).closest('aside');
+    expect(frontier).toHaveTextContent('Member claim IDs[]');
+    expect(frontier).toHaveTextContent('Frontier cardinality0');
+    expect(frontier).toHaveTextContent('Frontier statusREVIEW_REQUIRED');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar breakpoint BP-R01-AGE' }));
+    expect(screen.getByRole('heading', { name: 'BREAKPOINT' }).closest('aside')).toHaveTextContent('GD-R01-AGE-CONDITION');
+    fireEvent.click(screen.getByRole('button', { name: /Inspeccionar downstream effect downstream:BP-R01-AGE:C4:0/ }));
+    const downstream = screen.getByRole('heading', { name: 'DOWNSTREAM EFFECT' }).closest('aside');
+    expect(downstream).toHaveTextContent('Target claim IDC4');
+    expect(downstream).toHaveTextContent('Affected stateAFFECTED');
+    expect(downstream).toHaveTextContent('Materialized downstream effect from BP-R01-AGE.');
+  });
+
+  it('routes PILOT-R01 by selected contract rather than filename and exposes literal unresolved traces', async () => {
+    render(<App />);
+    await loadPilot('anything.json');
+    expect(screen.getByText(/PRIMARY: Diagnostic Output · anything.json/)).toBeInTheDocument();
+    expect(screen.getByText('ID: C1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /STEP_TO_TARGET de transition:GI-R01-PROV-C1:I1:C1:0/ }));
+    const refs = screen.getByRole('region', { name: 'Provenance refs' });
+    expect(refs).toHaveTextContent('GI-R01-PROV-C1');
+    expect(refs).toHaveTextContent('UNRESOLVED');
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar review required item review:RR-R01-EMPATHY' }));
+    expect(screen.getByText('Empathy scoring requires human review.')).toBeInTheDocument();
+  });
+
+  it('loads PILOT auxiliaries through file inputs, resolves their refs, and removal restores unresolved', async () => {
+    render(<App />);
+    await loadPilot();
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(pilotGi, 'gi-pilot.json')] } });
+    fireEvent.change(screen.getByLabelText('Cargar G_D'), { target: { files: [artifactFile(pilotGd, 'gd-pilot.json')] } });
+    await waitFor(() => expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2));
+    fireEvent.click(screen.getByRole('button', { name: /STEP_TO_TARGET de transition:GI-R01-PROV-C1:I1:C1:0/ }));
+    const refs = screen.getByRole('region', { name: 'Provenance refs' });
+    expect(refs).toHaveTextContent('RESOLVED');
+    expect(refs).toHaveTextContent('GI');
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar referencia GI-R01-PROV-C1' }));
+    expect(screen.getByRole('heading', { name: 'AUXILIARY REFERENCE' }).closest('aside')).toHaveTextContent('SIMULATED-PROVISIONAL-R01-RUN-001-GI-v1');
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar G_I' }));
+    expect(refs).toHaveTextContent('UNRESOLVED');
+    expect(screen.getByText('ID: C1')).toBeInTheDocument();
   });
 });

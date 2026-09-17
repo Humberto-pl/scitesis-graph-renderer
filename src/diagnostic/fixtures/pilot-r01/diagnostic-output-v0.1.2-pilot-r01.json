@@ -1,0 +1,530 @@
+{
+  "schema_version": "0.1.2",
+  "run_metadata": {
+    "run_id": "PILOT-R01-RUN-001",
+    "graph_ref": "scitesis://pilot/PILOT-R01-RUN-001/GI-PROVISIONAL",
+    "graph_version": "SIMULATED-PROVISIONAL-R01-RUN-001-GI-v1",
+    "diagnostic_graph_ref": "scitesis://pilot/PILOT-R01-RUN-001/GD-PROVISIONAL",
+    "diagnostic_graph_version": "SIMULATED-PROVISIONAL-R01-RUN-001-GD-v1",
+    "diagnostic_graph_origin": "PROVIDED",
+    "evaluation_state_id": "PILOT-R01-RUN-001-E1-PROVISIONAL",
+    "diagnostic_rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+    "simulator_or_engine": "SIMULATOR_AI",
+    "implementation_version": "PILOT-R01-PROVISIONAL-v1",
+    "active_adjudication_refs": [
+      "ADJ-RR-R01-EMPATHY",
+      "ADJ-RR-R01-GROUP-RELATIONSHIPS",
+      "ADJ-RR-R01-SAMPLE-POPULATION",
+      "ADJ-RR-R01-PSYCHOMETRICS",
+      "ADJ-RR-R01-PARAMETRIC-MULTIPLICITY"
+    ],
+    "active_diagnostic_condition_refs": [
+      "GD-R01-AGE-CONDITION",
+      "GD-R01-SOCIO-CONDITION"
+    ],
+    "active_defeater_refs": []
+  },
+  "scope": {
+    "scope_id": "PILOT-R01-SCOPE",
+    "target_claim_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "objective_refs": [],
+    "component_refs": [],
+    "scope_payload": {
+      "source_thesis": "Inteligência Emocional e Assertividade nos Enfermeiros",
+      "author": "Alexandra Monge Godinho Costa",
+      "year": 2009,
+      "artifact_status": "PILOT / EXPERIMENTAL",
+      "human_review": "NOT_YET_PERFORMED"
+    },
+    "scope_status": "REVIEW_REQUIRED",
+    "scope_notes": "PILOT / EXPERIMENTAL; NOT FOR CLIENT DELIVERY."
+  },
+  "inference_step_states": [
+    {
+      "inference_step_id": "I1",
+      "active_state": "ACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "INFERENCE_STEP",
+          "subject_ref": "I1",
+          "rule_ref": null,
+          "message": "Materialized provisional activity state for I1."
+        }
+      ]
+    },
+    {
+      "inference_step_id": "I2",
+      "active_state": "UNKNOWN",
+      "activity_adjudication_status": "REVIEW_REQUIRED",
+      "required_inputs_satisfied": "UNKNOWN",
+      "applicable": "UNKNOWN",
+      "defeated": "UNKNOWN",
+      "blocking_reasons": [
+        "Materialized provisional state for I2."
+      ],
+      "supporting_diagnostic_evidence_ids": [],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "INFERENCE_STEP",
+          "subject_ref": "I2",
+          "rule_ref": null,
+          "message": "Materialized provisional activity state for I2."
+        }
+      ]
+    },
+    {
+      "inference_step_id": "I3",
+      "active_state": "UNKNOWN",
+      "activity_adjudication_status": "REVIEW_REQUIRED",
+      "required_inputs_satisfied": "UNKNOWN",
+      "applicable": "UNKNOWN",
+      "defeated": "UNKNOWN",
+      "blocking_reasons": [
+        "Materialized provisional state for I3."
+      ],
+      "supporting_diagnostic_evidence_ids": [],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "INFERENCE_STEP",
+          "subject_ref": "I3",
+          "rule_ref": null,
+          "message": "Materialized provisional activity state for I3."
+        }
+      ]
+    },
+    {
+      "inference_step_id": "I4",
+      "active_state": "INACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "FALSE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [
+        "Materialized provisional state for I4."
+      ],
+      "supporting_diagnostic_evidence_ids": [],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "INFERENCE_STEP",
+          "subject_ref": "I4",
+          "rule_ref": null,
+          "message": "Materialized provisional activity state for I4."
+        }
+      ]
+    },
+    {
+      "inference_step_id": "I5",
+      "active_state": "INACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "FALSE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [
+        "Materialized provisional state for I5."
+      ],
+      "supporting_diagnostic_evidence_ids": [],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "INFERENCE_STEP",
+          "subject_ref": "I5",
+          "rule_ref": null,
+          "message": "Materialized provisional activity state for I5."
+        }
+      ]
+    },
+    {
+      "inference_step_id": "I6",
+      "active_state": "UNKNOWN",
+      "activity_adjudication_status": "REVIEW_REQUIRED",
+      "required_inputs_satisfied": "UNKNOWN",
+      "applicable": "UNKNOWN",
+      "defeated": "UNKNOWN",
+      "blocking_reasons": [
+        "Materialized provisional state for I6."
+      ],
+      "supporting_diagnostic_evidence_ids": [],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "INFERENCE_STEP",
+          "subject_ref": "I6",
+          "rule_ref": null,
+          "message": "Materialized provisional activity state for I6."
+        }
+      ]
+    }
+  ],
+  "claim_defendibility": [
+    {
+      "claim_id": "C1",
+      "scope_id": "PILOT-R01-SCOPE",
+      "def_e_value": "TRUE",
+      "defendibility_state": "DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [
+        "ROUTE-R01-C1"
+      ],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "DEFENDIBILITY_DECISION",
+          "subject_ref": "C1",
+          "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+          "message": "Materialized provisional defendability decision for C1."
+        }
+      ],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2"
+    },
+    {
+      "claim_id": "C2",
+      "scope_id": "PILOT-R01-SCOPE",
+      "def_e_value": "UNKNOWN",
+      "defendibility_state": null,
+      "adjudication_status": "REVIEW_REQUIRED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [
+        "GD-R01-AGE-CONDITION"
+      ],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "DEFENDIBILITY_DECISION",
+          "subject_ref": "C2",
+          "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+          "message": "Materialized provisional defendability decision for C2."
+        }
+      ],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2"
+    },
+    {
+      "claim_id": "C3",
+      "scope_id": "PILOT-R01-SCOPE",
+      "def_e_value": "UNKNOWN",
+      "defendibility_state": null,
+      "adjudication_status": "REVIEW_REQUIRED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [
+        "GD-R01-SOCIO-CONDITION"
+      ],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "DEFENDIBILITY_DECISION",
+          "subject_ref": "C3",
+          "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+          "message": "Materialized provisional defendability decision for C3."
+        }
+      ],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2"
+    },
+    {
+      "claim_id": "C4",
+      "scope_id": "PILOT-R01-SCOPE",
+      "def_e_value": "FALSE",
+      "defendibility_state": "NOT_DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [
+        "ROUTE-R01-C4"
+      ],
+      "blocking_condition_ids": [
+        "GD-R01-AGE-CONDITION"
+      ],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "DEFENDIBILITY_DECISION",
+          "subject_ref": "C4",
+          "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+          "message": "Materialized provisional defendability decision for C4."
+        }
+      ],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2"
+    },
+    {
+      "claim_id": "C5",
+      "scope_id": "PILOT-R01-SCOPE",
+      "def_e_value": "FALSE",
+      "defendibility_state": "NOT_DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [
+        "ROUTE-R01-C5"
+      ],
+      "blocking_condition_ids": [
+        "GD-R01-SOCIO-CONDITION"
+      ],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "DEFENDIBILITY_DECISION",
+          "subject_ref": "C5",
+          "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+          "message": "Materialized provisional defendability decision for C5."
+        }
+      ],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2"
+    },
+    {
+      "claim_id": "C6",
+      "scope_id": "PILOT-R01-SCOPE",
+      "def_e_value": "UNKNOWN",
+      "defendibility_state": null,
+      "adjudication_status": "REVIEW_REQUIRED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "DEFENDIBILITY_DECISION",
+          "subject_ref": "C6",
+          "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+          "message": "Materialized provisional defendability decision for C6."
+        }
+      ],
+      "rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2"
+    }
+  ],
+  "viable_dependency_view": {
+    "view_id": "PILOT-R01-HE",
+    "scope_id": "PILOT-R01-SCOPE",
+    "evaluation_state_id": "PILOT-R01-RUN-001-E1-PROVISIONAL",
+    "transitions": [
+      {
+        "source_claim_or_input_id": "GI-R01-PROV-C1",
+        "inference_step_id": "I1",
+        "target_claim_id": "C1",
+        "transition_state": "ACTIVE",
+        "required_for_step": "TRUE",
+        "required_for_target": "TRUE",
+        "alternative_route_refs": [],
+        "why_active": "Only the materialized active transition for C1 is included in H_e.",
+        "provenance_refs": [
+          "GI-R01-PROV-C1"
+        ]
+      }
+    ],
+    "view_status": "RESOLVED",
+    "derivation_rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2"
+  },
+  "breakpoints": [
+    {
+      "breakpoint_id": "BP-R01-AGE",
+      "scope_id": "PILOT-R01-SCOPE",
+      "route_or_path_ref": "ROUTE-R01-C4",
+      "origin_of_failure_ref": "GD-R01-AGE-CONDITION",
+      "breakpoint_step_id": "I4",
+      "affected_transition_target_id": "C4",
+      "failure_mode": "BLOCKING_DIAGNOSTIC_CONDITION",
+      "active_defeater_or_blocking_condition_ref": "GD-R01-AGE-CONDITION",
+      "first_break_on_route": "TRUE",
+      "adjudication_status": "RESOLVED",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "LOST_ROUTE",
+          "subject_ref": "BP-R01-AGE",
+          "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+          "message": "Materialized age-route breakpoint."
+        }
+      ]
+    },
+    {
+      "breakpoint_id": "BP-R01-SOCIO",
+      "scope_id": "PILOT-R01-SCOPE",
+      "route_or_path_ref": "ROUTE-R01-C5",
+      "origin_of_failure_ref": "GD-R01-SOCIO-CONDITION",
+      "breakpoint_step_id": "I5",
+      "affected_transition_target_id": "C5",
+      "failure_mode": "BLOCKING_DIAGNOSTIC_CONDITION",
+      "active_defeater_or_blocking_condition_ref": "GD-R01-SOCIO-CONDITION",
+      "first_break_on_route": "TRUE",
+      "adjudication_status": "RESOLVED",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "LOST_ROUTE",
+          "subject_ref": "BP-R01-SOCIO",
+          "rule_ref": null,
+          "message": "Materialized sociodemographic-route breakpoint."
+        }
+      ]
+    }
+  ],
+  "downstream_effects": [
+    {
+      "failure_ref": "BP-R01-AGE",
+      "target_claim_id": "C4",
+      "affected_state": "AFFECTED",
+      "adjudication_status": "RESOLVED",
+      "lost_viable_derivation_ids": [
+        "ROUTE-R01-C4"
+      ],
+      "remaining_viable_derivation_ids": [],
+      "required_dependency_refs": [
+        "I4"
+      ],
+      "alternative_route_refs": [],
+      "propagation_reason": "Materialized downstream effect from BP-R01-AGE.",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "LOST_ROUTE",
+          "subject_ref": "C4",
+          "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+          "message": "The output records C4 as affected by BP-R01-AGE."
+        }
+      ]
+    },
+    {
+      "failure_ref": "BP-R01-SOCIO",
+      "target_claim_id": "C5",
+      "affected_state": "AFFECTED",
+      "adjudication_status": "RESOLVED",
+      "lost_viable_derivation_ids": [
+        "ROUTE-R01-C5"
+      ],
+      "remaining_viable_derivation_ids": [],
+      "required_dependency_refs": [
+        "I5"
+      ],
+      "alternative_route_refs": [],
+      "propagation_reason": "Materialized downstream effect from BP-R01-SOCIO.",
+      "explanation_trace": [
+        {
+          "sequence": 1,
+          "trace_kind": "LOST_ROUTE",
+          "subject_ref": "C5",
+          "rule_ref": null,
+          "message": "The output records C5 as affected by BP-R01-SOCIO."
+        }
+      ]
+    }
+  ],
+  "defendability_frontier": {
+    "scope_id": "PILOT-R01-SCOPE",
+    "evaluation_state_id": "PILOT-R01-RUN-001-E1-PROVISIONAL",
+    "member_claim_ids": [],
+    "frontier_cardinality": 0,
+    "graph_version": "SIMULATED-PROVISIONAL-R01-RUN-001-GI-v1",
+    "diagnostic_rule_version": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+    "active_adjudication_refs": [
+      "ADJ-RR-R01-EMPATHY",
+      "ADJ-RR-R01-GROUP-RELATIONSHIPS",
+      "ADJ-RR-R01-SAMPLE-POPULATION",
+      "ADJ-RR-R01-PSYCHOMETRICS",
+      "ADJ-RR-R01-PARAMETRIC-MULTIPLICITY"
+    ],
+    "frontier_status": "REVIEW_REQUIRED",
+    "explanation_trace": [
+      {
+        "sequence": 1,
+        "trace_kind": "FRONTIER_DECISION",
+        "subject_ref": null,
+        "rule_ref": "SCITESIS-INTEGRATED-DIAGNOSTIC-SIMULATOR-v0.4.2",
+        "message": "The materialized frontier is empty pending review."
+      }
+    ]
+  },
+  "compatibility_maximums": [],
+  "review_required_items": [
+    {
+      "item_id": "RR-R01-EMPATHY",
+      "subject_ref": "I2",
+      "review_reason": "Empathy scoring requires human review.",
+      "blocking_question": "Confirm the materialized empathy scoring record.",
+      "possible_impact": "The corresponding materialized UNKNOWN state may be adjudicated.",
+      "recommended_adjudication_target": "ADJ-RR-R01-EMPATHY"
+    },
+    {
+      "item_id": "RR-R01-GROUP-RELATIONSHIPS",
+      "subject_ref": "I3",
+      "review_reason": "Group relationship management scoring requires human review.",
+      "blocking_question": "Confirm the materialized group relationship management scoring record.",
+      "possible_impact": "The corresponding materialized UNKNOWN state may be adjudicated.",
+      "recommended_adjudication_target": "ADJ-RR-R01-GROUP-RELATIONSHIPS"
+    },
+    {
+      "item_id": "RR-R01-SAMPLE-POPULATION",
+      "subject_ref": "C2",
+      "review_reason": "Sample/population scope requires human review.",
+      "blocking_question": "Confirm the materialized sample/population scope record.",
+      "possible_impact": "The corresponding materialized UNKNOWN state may be adjudicated.",
+      "recommended_adjudication_target": "ADJ-RR-R01-SAMPLE-POPULATION"
+    },
+    {
+      "item_id": "RR-R01-PSYCHOMETRICS",
+      "subject_ref": "C3",
+      "review_reason": "Psychometric sufficiency requires human review.",
+      "blocking_question": "Confirm the materialized psychometric record.",
+      "possible_impact": "The corresponding materialized UNKNOWN state may be adjudicated.",
+      "recommended_adjudication_target": "ADJ-RR-R01-PSYCHOMETRICS"
+    },
+    {
+      "item_id": "RR-R01-PARAMETRIC-MULTIPLICITY",
+      "subject_ref": "I6",
+      "review_reason": "Parametric assumptions and multiplicity require human review.",
+      "blocking_question": "Confirm the materialized assumptions and multiplicity record.",
+      "possible_impact": "The corresponding materialized UNKNOWN state may be adjudicated.",
+      "recommended_adjudication_target": "ADJ-RR-R01-PARAMETRIC-MULTIPLICITY"
+    }
+  ],
+  "explanation_summary": {
+    "summary_status": "PARTIAL_REVIEW_REQUIRED",
+    "primary_findings": [
+      "Mixed TRUE, FALSE, and UNKNOWN claim states are materialized.",
+      "Mixed ACTIVE, INACTIVE, and UNKNOWN inference states are materialized."
+    ],
+    "frontier_summary": "The materialized frontier is empty with REVIEW_REQUIRED status.",
+    "breakpoint_summary": "Two breakpoints are materialized.",
+    "propagation_summary": "Two downstream effects are materialized.",
+    "review_required_summary": [
+      "Empathy scoring requires human review.",
+      "Group relationship management scoring requires human review.",
+      "Sample/population scope requires human review.",
+      "Psychometric sufficiency requires human review.",
+      "Parametric assumptions and multiplicity require human review."
+    ]
+  }
+}
