@@ -1,5 +1,7 @@
 import type {
   DiagnosticClaimView,
+  DiagnosticBreakpointView,
+  DiagnosticDownstreamEffectView,
   DiagnosticGraphViewModel,
   DiagnosticInferenceStepView,
   DiagnosticTransitionView,
@@ -11,6 +13,7 @@ export interface DiagnosticClaimRenderNode {
   canonicalId: string;
   position: { x: number; y: number };
   claim: DiagnosticClaimView;
+  downstreamEffectIds: string[];
 }
 
 export interface DiagnosticInferenceRenderNode {
@@ -19,6 +22,7 @@ export interface DiagnosticInferenceRenderNode {
   canonicalId: string;
   position: { x: number; y: number };
   inferenceStep: DiagnosticInferenceStepView;
+  breakpointIds: string[];
 }
 
 export type DiagnosticRenderNode = DiagnosticClaimRenderNode | DiagnosticInferenceRenderNode;
@@ -56,11 +60,43 @@ export interface UnavailableSourceReference {
   transitionState: DiagnosticTransitionView['transition_state'];
 }
 
+export interface DiagnosticBreakpointRenderItem {
+  id: string;
+  canonicalId: string;
+  breakpoint: DiagnosticBreakpointView;
+  inferenceNodeId: string | null;
+  targetClaimNodeId: string | null;
+  downstreamEffectIds: string[];
+}
+
+/** The id is renderer-only: the canonical downstream record has no id. */
+export interface DiagnosticDownstreamEffectRenderItem {
+  id: string;
+  downstreamEffect: DiagnosticDownstreamEffectView;
+  targetClaimNodeId: string | null;
+  relatedBreakpointId: string | null;
+}
+
+export type UnavailableDiagnosticReferenceRole =
+  | 'BREAKPOINT_STEP'
+  | 'BREAKPOINT_TARGET'
+  | 'DOWNSTREAM_TARGET'
+  | 'FAILURE_REF';
+
+export interface UnavailableDiagnosticReference {
+  role: UnavailableDiagnosticReferenceRole;
+  canonicalId: string;
+  ownerId: string;
+}
+
 export interface DiagnosticGraphRenderModel {
   nodes: DiagnosticRenderNode[];
   edges: DiagnosticRenderEdge[];
   unavailableSourceReferences: UnavailableSourceReference[];
   unavailableTransitionReferences: UnavailableTransitionReference[];
+  breakpoints: DiagnosticBreakpointRenderItem[];
+  downstreamEffects: DiagnosticDownstreamEffectRenderItem[];
+  unavailableDiagnosticReferences: UnavailableDiagnosticReference[];
 }
 
 const claimNodeId = (id: string) => `claim:${id}`;
@@ -75,6 +111,39 @@ export function adaptDiagnosticGraphForRender(
 ): DiagnosticGraphRenderModel {
   const claimIds = new Set(viewModel.claims.map(claim => claim.claim_id));
   const inferenceIds = new Set(viewModel.inferenceSteps.map(step => step.inference_step_id));
+  const breakpointCanonicalIds = new Set(viewModel.breakpoints.map(item => item.breakpoint_id));
+  const downstreamEffects: DiagnosticDownstreamEffectRenderItem[] = viewModel.downstreamEffects.map((effect, index) => {
+    const id = `downstream:${effect.failure_ref}:${effect.target_claim_id}:${index}`;
+    return {
+      id,
+      downstreamEffect: {
+        ...effect,
+        lost_viable_derivation_ids: [...effect.lost_viable_derivation_ids],
+        remaining_viable_derivation_ids: [...effect.remaining_viable_derivation_ids],
+        required_dependency_refs: [...effect.required_dependency_refs],
+        alternative_route_refs: [...effect.alternative_route_refs],
+        explanation_trace: effect.explanation_trace.map(item => ({ ...item })),
+      },
+      targetClaimNodeId: claimIds.has(effect.target_claim_id) ? claimNodeId(effect.target_claim_id) : null,
+      relatedBreakpointId: breakpointCanonicalIds.has(effect.failure_ref) ? `breakpoint:${effect.failure_ref}` : null,
+    };
+  });
+  const breakpoints: DiagnosticBreakpointRenderItem[] = viewModel.breakpoints.map(breakpoint => {
+    const id = `breakpoint:${breakpoint.breakpoint_id}`;
+    return {
+      id,
+      canonicalId: breakpoint.breakpoint_id,
+      breakpoint: {
+        ...breakpoint,
+        explanation_trace: breakpoint.explanation_trace.map(item => ({ ...item })),
+      },
+      inferenceNodeId: inferenceIds.has(breakpoint.breakpoint_step_id) ? inferenceNodeId(breakpoint.breakpoint_step_id) : null,
+      targetClaimNodeId: claimIds.has(breakpoint.affected_transition_target_id) ? claimNodeId(breakpoint.affected_transition_target_id) : null,
+      downstreamEffectIds: downstreamEffects
+        .filter(effect => effect.downstreamEffect.failure_ref === breakpoint.breakpoint_id)
+        .map(effect => effect.id),
+    };
+  });
   const nodes: DiagnosticRenderNode[] = [
     ...viewModel.claims.map((claim, index): DiagnosticClaimRenderNode => ({
       id: claimNodeId(claim.claim_id),
@@ -82,6 +151,7 @@ export function adaptDiagnosticGraphForRender(
       canonicalId: claim.claim_id,
       position: { x: 40, y: 40 + index * 170 },
       claim: { ...claim },
+      downstreamEffectIds: downstreamEffects.filter(effect => effect.downstreamEffect.target_claim_id === claim.claim_id).map(effect => effect.id),
     })),
     ...viewModel.inferenceSteps.map((inferenceStep, index): DiagnosticInferenceRenderNode => ({
       id: inferenceNodeId(inferenceStep.inference_step_id),
@@ -89,11 +159,22 @@ export function adaptDiagnosticGraphForRender(
       canonicalId: inferenceStep.inference_step_id,
       position: { x: 420, y: 40 + index * 170 },
       inferenceStep: { ...inferenceStep },
+      breakpointIds: breakpoints.filter(item => item.breakpoint.breakpoint_step_id === inferenceStep.inference_step_id).map(item => item.id),
     })),
   ];
   const edges: DiagnosticRenderEdge[] = [];
   const unavailableSourceReferences: UnavailableSourceReference[] = [];
   const unavailableTransitionReferences: UnavailableTransitionReference[] = [];
+  const unavailableDiagnosticReferences: UnavailableDiagnosticReference[] = [];
+
+  breakpoints.forEach(item => {
+    if (item.inferenceNodeId === null) unavailableDiagnosticReferences.push({ role: 'BREAKPOINT_STEP', canonicalId: item.breakpoint.breakpoint_step_id, ownerId: item.id });
+    if (item.targetClaimNodeId === null) unavailableDiagnosticReferences.push({ role: 'BREAKPOINT_TARGET', canonicalId: item.breakpoint.affected_transition_target_id, ownerId: item.id });
+  });
+  downstreamEffects.forEach(item => {
+    if (item.targetClaimNodeId === null) unavailableDiagnosticReferences.push({ role: 'DOWNSTREAM_TARGET', canonicalId: item.downstreamEffect.target_claim_id, ownerId: item.id });
+    if (item.relatedBreakpointId === null) unavailableDiagnosticReferences.push({ role: 'FAILURE_REF', canonicalId: item.downstreamEffect.failure_ref, ownerId: item.id });
+  });
 
   viewModel.transitions.forEach((transition, index) => {
     const transitionKey = `transition:${transition.source_claim_or_input_id}:${transition.inference_step_id}:${transition.target_claim_id}:${index}`;
@@ -155,5 +236,5 @@ export function adaptDiagnosticGraphForRender(
     }
   });
 
-  return { nodes, edges, unavailableSourceReferences, unavailableTransitionReferences };
+  return { nodes, edges, unavailableSourceReferences, unavailableTransitionReferences, breakpoints, downstreamEffects, unavailableDiagnosticReferences };
 }
