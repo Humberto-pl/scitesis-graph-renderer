@@ -75,7 +75,7 @@ export default function App() {
 
   return <>
     <header className="workspace-header">
-      <div className="renderer-identity"><h1>SciTesis · Graph Renderer</h1><small>v0.1.1</small></div>
+      <div className="renderer-identity"><h1>SciTesis · Graph Renderer</h1><small>v0.2.0</small></div>
       <div className="view-switcher" role="group" aria-label="Modo principal"><button className={mode === 'legacy' ? 'active' : ''} aria-pressed={mode === 'legacy'} onClick={() => setMode('legacy')}>Legacy</button><button className={mode === 'diagnostic' ? 'active' : ''} aria-pressed={mode === 'diagnostic'} onClick={() => setMode('diagnostic')}>Diagnostic Output</button></div>
       {mode === 'legacy' ? <>
         <div className="artifact-identity" aria-label="Artifact principal activo"><strong>PRIMARY: Legacy · {legacy.fileName}</strong><details><summary>Detalles</summary><dl><dt>Source</dt><dd>{legacy.source === 'DEMO' ? 'Demo incluida' : 'Archivo local'}</dd><dt>case_id</dt><dd>{legacy.artifact.case_id}</dd><dt>execution_id</dt><dd>{legacy.artifact.execution_id}</dd><dt>contract_version</dt><dd>{legacy.artifact.contract_version}</dd></dl></details></div>

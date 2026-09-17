@@ -196,7 +196,7 @@ describe('DiagnosticGraphRenderer trace panel', () => {
     expect(screen.getByRole('region', { name: 'Adjudication refs' })).toHaveTextContent('["adj-1"]');
     expect(screen.getByRole('region', { name: 'Diagnostic condition refs' })).toHaveTextContent('["condition-1"]');
     expect(screen.getByRole('region', { name: 'Defeater refs' })).toHaveTextContent('["defeater-1"]');
-    expect(screen.getAllByText('Referencias literales; no resueltas en esta vista.').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('La referencia literal se conserva independientemente de su resolución auxiliar.').length).toBeGreaterThan(0);
   });
 
   it('selects breakpoint, downstream, frontier, and review sources independently', () => {
