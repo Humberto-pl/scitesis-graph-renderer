@@ -25,10 +25,28 @@ export type DiagnosticRenderNode = DiagnosticClaimRenderNode | DiagnosticInferen
 
 export interface DiagnosticRenderEdge {
   id: string;
+  transitionKey: string;
   source: string;
   target: string;
   segment: 'SOURCE_TO_STEP' | 'STEP_TO_TARGET';
+  source_claim_or_input_id: string;
+  inference_step_id: string;
+  target_claim_id: string;
+  transition_state: DiagnosticTransitionView['transition_state'];
+  required_for_step: DiagnosticTransitionView['required_for_step'];
+  required_for_target: DiagnosticTransitionView['required_for_target'];
+  alternative_route_refs: string[];
+  why_active: string;
+  provenance_refs: string[];
   transition: DiagnosticTransitionView;
+}
+
+export type UnavailableTransitionReferenceRole = 'SOURCE' | 'INFERENCE' | 'TARGET';
+
+export interface UnavailableTransitionReference {
+  role: UnavailableTransitionReferenceRole;
+  canonicalId: string;
+  transitionKey: string;
 }
 
 export interface UnavailableSourceReference {
@@ -42,6 +60,7 @@ export interface DiagnosticGraphRenderModel {
   nodes: DiagnosticRenderNode[];
   edges: DiagnosticRenderEdge[];
   unavailableSourceReferences: UnavailableSourceReference[];
+  unavailableTransitionReferences: UnavailableTransitionReference[];
 }
 
 const claimNodeId = (id: string) => `claim:${id}`;
@@ -74,38 +93,67 @@ export function adaptDiagnosticGraphForRender(
   ];
   const edges: DiagnosticRenderEdge[] = [];
   const unavailableSourceReferences: UnavailableSourceReference[] = [];
+  const unavailableTransitionReferences: UnavailableTransitionReference[] = [];
 
   viewModel.transitions.forEach((transition, index) => {
-    const baseId = `transition:${transition.source_claim_or_input_id}:${transition.inference_step_id}:${transition.target_claim_id}:${index}`;
+    const transitionKey = `transition:${transition.source_claim_or_input_id}:${transition.inference_step_id}:${transition.target_claim_id}:${index}`;
     const hasInference = inferenceIds.has(transition.inference_step_id);
+    const hasSource = claimIds.has(transition.source_claim_or_input_id);
+    const hasTarget = claimIds.has(transition.target_claim_id);
+    const transitionCopy: DiagnosticTransitionView = {
+      ...transition,
+      alternative_route_refs: [...transition.alternative_route_refs],
+      provenance_refs: [...transition.provenance_refs],
+    };
+    const commonEdgeFields = {
+      transitionKey,
+      source_claim_or_input_id: transition.source_claim_or_input_id,
+      inference_step_id: transition.inference_step_id,
+      target_claim_id: transition.target_claim_id,
+      transition_state: transition.transition_state,
+      required_for_step: transition.required_for_step,
+      required_for_target: transition.required_for_target,
+      alternative_route_refs: [...transition.alternative_route_refs],
+      why_active: transition.why_active,
+      provenance_refs: [...transition.provenance_refs],
+      transition: transitionCopy,
+    };
 
-    if (claimIds.has(transition.source_claim_or_input_id) && hasInference) {
+    if (hasSource && hasInference) {
       edges.push({
-        id: `${baseId}:source-step`,
+        ...commonEdgeFields,
+        id: `${transitionKey}:source-step`,
         source: claimNodeId(transition.source_claim_or_input_id),
         target: inferenceNodeId(transition.inference_step_id),
         segment: 'SOURCE_TO_STEP',
-        transition: { ...transition },
       });
-    } else if (!claimIds.has(transition.source_claim_or_input_id)) {
+    } else if (!hasSource) {
       unavailableSourceReferences.push({
         sourceClaimOrInputId: transition.source_claim_or_input_id,
         inferenceStepId: transition.inference_step_id,
         targetClaimId: transition.target_claim_id,
         transitionState: transition.transition_state,
       });
+      unavailableTransitionReferences.push({ role: 'SOURCE', canonicalId: transition.source_claim_or_input_id, transitionKey });
     }
 
-    if (hasInference && claimIds.has(transition.target_claim_id)) {
+    if (!hasInference) {
+      unavailableTransitionReferences.push({ role: 'INFERENCE', canonicalId: transition.inference_step_id, transitionKey });
+    }
+    if (!hasTarget) {
+      unavailableTransitionReferences.push({ role: 'TARGET', canonicalId: transition.target_claim_id, transitionKey });
+    }
+
+    if (hasInference && hasTarget) {
       edges.push({
-        id: `${baseId}:step-target`,
+        ...commonEdgeFields,
+        id: `${transitionKey}:step-target`,
         source: inferenceNodeId(transition.inference_step_id),
         target: claimNodeId(transition.target_claim_id),
         segment: 'STEP_TO_TARGET',
-        transition: { ...transition },
       });
     }
   });
 
-  return { nodes, edges, unavailableSourceReferences };
+  return { nodes, edges, unavailableSourceReferences, unavailableTransitionReferences };
 }
