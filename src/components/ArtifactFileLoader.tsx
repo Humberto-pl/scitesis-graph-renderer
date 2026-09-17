@@ -1,6 +1,20 @@
-import { useState,type ChangeEvent } from 'react';
-import { loadCanonicalArtifactFromText,type ArtifactLoadError } from '../import/canonicalArtifactLoader';
+import { loadCanonicalArtifact, type ArtifactLoadError } from '../import/canonicalArtifactLoader';
 import type { ConfirmedSimulatedGraphArtifact } from '../graph/types';
-export const MAX_ARTIFACT_FILE_BYTES=10*1024*1024;
-export type ImportError=ArtifactLoadError|{code:'FILE_TOO_LARGE'|'INVALID_EXTENSION'|'FILE_READ_FAILED'|'ADAPTER_REJECTED_ARTIFACT';message:string;details?:string[]};
-export function ArtifactFileLoader({onLoad,onError,error}:{onLoad:(a:ConfirmedSimulatedGraphArtifact,n:string)=>void;onError:(e:ImportError)=>void;error?:ImportError}){const[loading,setLoading]=useState(false);const change=async(event:ChangeEvent<HTMLInputElement>)=>{const input=event.currentTarget,file=input.files?.[0];if(!file)return;setLoading(true);try{if(!file.name.toLowerCase().endsWith('.json'))onError({code:'INVALID_EXTENSION',message:'Selecciona un archivo con extensión .json.'});else if(file.size>MAX_ARTIFACT_FILE_BYTES)onError({code:'FILE_TOO_LARGE',message:'El archivo supera el límite operativo de 10 MB.'});else{const result=loadCanonicalArtifactFromText(await file.text());if(result.ok)onLoad(result.artifact,file.name);else onError(result.error)}}catch(reason){onError({code:'FILE_READ_FAILED',message:'No se pudo leer el archivo.',details:[reason instanceof Error?reason.message:String(reason)]})}finally{setLoading(false);input.value=''}};return <section className="artifact-loader" aria-label="Importar artifact"><label className="file-picker">{loading?'Cargando…':'Cargar JSON'}<input aria-label="Cargar artifact JSON" type="file" accept=".json,application/json" disabled={loading} onChange={change}/></label><span className="local-processing">Procesamiento local</span>{error&&<div role="alert"><strong>{error.code}</strong><p>{error.message}</p>{error.details?.length?<ul>{error.details.map((item,index)=><li key={`${index}-${item}`}>{item}</li>)}</ul>:null}</div>}</section>}
+import { JsonFileInput, MAX_JSON_FILE_BYTES, type JsonFileError } from './JsonFileInput';
+
+export const MAX_ARTIFACT_FILE_BYTES = MAX_JSON_FILE_BYTES;
+export type ImportError = ArtifactLoadError | JsonFileError | { code: 'ADAPTER_REJECTED_ARTIFACT'; message: string; details?: string[] };
+
+/** Backward-compatible legacy loader. The shared input parses; only this wrapper invokes the legacy contract. */
+export function ArtifactFileLoader({ onLoad, onError, error }: { onLoad: (artifact: ConfirmedSimulatedGraphArtifact, name: string) => void; onError: (error: ImportError) => void; error?: ImportError }) {
+  const load = (value: unknown, fileName: string) => {
+    const result = loadCanonicalArtifact(value);
+    if (result.ok) onLoad(result.artifact, fileName);
+    else onError(result.error);
+  };
+  return <section className="artifact-loader" aria-label="Importar artifact">
+    <JsonFileInput label="Cargar artifact JSON" onJson={load} onError={error => onError(error)}>Cargar JSON</JsonFileInput>
+    <span className="local-processing">Procesamiento local</span>
+    {error && <div role="alert"><strong>{error.code}</strong><p>{error.message}</p>{error.details?.length ? <ul>{error.details.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul> : null}</div>}
+  </section>;
+}

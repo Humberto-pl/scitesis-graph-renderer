@@ -41,6 +41,18 @@ const validate = ajv.compile(outputSchema);
 const validationDetail = (error: ErrorObject): string =>
   `${error.instancePath || '/'}: ${error.message ?? error.keyword}`;
 
+export function loadCanonicalArtifact(parsed: unknown): ArtifactLoadResult {
+  if (
+    typeof parsed === 'object'
+    && parsed !== null
+    && 'artifact_type' in parsed
+    && (parsed as { artifact_type?: unknown }).artifact_type !== 'CONFIRMED_SIMULATED_GRAPH'
+  ) return { ok: false, error: { code: 'UNSUPPORTED_ARTIFACT_TYPE', message: 'Legacy Confirmed Simulated Graph: tipo de artifact incorrecto.', details: [`Tipo recibido: ${String((parsed as { artifact_type?: unknown }).artifact_type)}`] } };
+
+  if (!validate(parsed)) return { ok: false, error: { code: 'SCHEMA_VALIDATION_FAILED', message: 'Legacy Confirmed Simulated Graph: schema validation failed (Output Schema v0.3).', details: (validate.errors ?? []).slice(0, 15).map(validationDetail) } };
+  return { ok: true, artifact: parsed as unknown as ConfirmedSimulatedGraphArtifact };
+}
+
 export function loadCanonicalArtifactFromText(text: string): ArtifactLoadResult {
   let parsed: unknown;
   try {
@@ -56,32 +68,5 @@ export function loadCanonicalArtifactFromText(text: string): ArtifactLoadResult 
     };
   }
 
-  if (
-    typeof parsed === 'object'
-    && parsed !== null
-    && 'artifact_type' in parsed
-    && (parsed as { artifact_type?: unknown }).artifact_type !== 'CONFIRMED_SIMULATED_GRAPH'
-  ) {
-    return {
-      ok: false,
-      error: {
-        code: 'UNSUPPORTED_ARTIFACT_TYPE',
-        message: 'Este renderer espera un CONFIRMED_SIMULATED_GRAPH.',
-        details: [`Tipo recibido: ${String((parsed as { artifact_type?: unknown }).artifact_type)}`],
-      },
-    };
-  }
-
-  if (!validate(parsed)) {
-    return {
-      ok: false,
-      error: {
-        code: 'SCHEMA_VALIDATION_FAILED',
-        message: 'Artifact inválido según Output Schema v0.3.',
-        details: (validate.errors ?? []).slice(0, 15).map(validationDetail),
-      },
-    };
-  }
-
-  return { ok: true, artifact: parsed as unknown as ConfirmedSimulatedGraphArtifact };
+  return loadCanonicalArtifact(parsed);
 }
