@@ -7,6 +7,8 @@ import { buildDiagnosticGraphViewModel } from '../diagnostic/diagnosticGraphView
 import { loadDiagnosticOutput } from '../diagnostic/diagnosticOutputLoader';
 import { DiagnosticGraphRenderer } from './DiagnosticGraphRenderer';
 
+const richRenderModel = () => adaptDiagnosticGraphForRender(buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(richFixture))));
+
 describe('DiagnosticGraphRenderer', () => {
   it('renders canonical claim and inference fields without collapsing UNKNOWN and REVIEW_REQUIRED', () => {
     const model = adaptDiagnosticGraphForRender(buildDiagnosticGraphViewModel(loadDiagnosticOutput(minimalFixture)));
@@ -172,4 +174,57 @@ describe('DiagnosticGraphRenderer', () => {
     expect(model.nodes.some(node => node.canonicalId === 'claim-missing')).toBe(false);
   });
 
+});
+
+describe('DiagnosticGraphRenderer trace panel', () => {
+  it('selects claims and inference steps accessibly and preserves empty versus literal traces', () => {
+    render(<DiagnosticGraphRenderer model={richRenderModel()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar claim claim-affected' }));
+    expect(screen.getByRole('heading', { name: 'TRACE / REFERENCES' })).toBeInTheDocument();
+    expect(screen.getByText('claim:claim-affected', { selector: 'code' })).toBeInTheDocument();
+    expect(screen.getByText('[]', { selector: '.explanation-trace span' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar inference step step-rich' }));
+    expect(screen.getByText('Canonical active-state trace.')).toBeInTheDocument();
+  });
+
+  it('shows transition and run reference groups literally without resolving labels', () => {
+    render(<DiagnosticGraphRenderer model={richRenderModel()} />);
+    fireEvent.click(screen.getByRole('button', { name: /STEP_TO_TARGET de transition:/ }));
+    expect(screen.getByRole('region', { name: 'Provenance refs' })).toHaveTextContent('["provenance-1"]');
+    expect(screen.getByRole('region', { name: 'Alternative route refs' })).toHaveTextContent('["route-alternative"]');
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar trazabilidad del run' }));
+    expect(screen.getByRole('region', { name: 'Adjudication refs' })).toHaveTextContent('["adj-1"]');
+    expect(screen.getByRole('region', { name: 'Diagnostic condition refs' })).toHaveTextContent('["condition-1"]');
+    expect(screen.getByRole('region', { name: 'Defeater refs' })).toHaveTextContent('["defeater-1"]');
+    expect(screen.getAllByText('Referencias literales; no resueltas en esta vista.').length).toBeGreaterThan(0);
+  });
+
+  it('selects breakpoint, downstream, frontier, and review sources independently', () => {
+    render(<DiagnosticGraphRenderer model={richRenderModel()} />);
+    const cases = [
+      ['Inspeccionar breakpoint breakpoint-1', 'breakpoint:breakpoint-1'],
+      ['Inspeccionar downstream effect downstream:breakpoint-1:claim-affected:0', 'downstream:breakpoint-1:claim-affected:0'],
+      ['Inspeccionar defendability frontier', 'defendability-frontier'],
+      ['Inspeccionar review required item review:review-1', 'review:review-1'],
+    ];
+    for (const [button, id] of cases) {
+      fireEvent.click(screen.getByRole('button', { name: button }));
+      expect(screen.getByText(id, { selector: 'code' })).toBeInTheDocument();
+    }
+    expect(screen.getByText('Canonical unresolved question.')).toBeInTheDocument();
+  });
+
+  it('renders null trace references literally and keeps the supplied array order', () => {
+    const model = richRenderModel();
+    const claim = model.traceSources.find(source => source.sourceId === 'claim:claim-supported')!;
+    claim.explanationTrace = [
+      { sequence: 5, trace_kind: 'OTHER', subject_ref: null, rule_ref: null, message: 'first supplied' },
+      { sequence: 2, trace_kind: 'ORIGIN', subject_ref: 'literal', rule_ref: null, message: 'second supplied' },
+    ];
+    render(<DiagnosticGraphRenderer model={model} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar claim claim-supported' }));
+    const list = screen.getByText('first supplied').closest('ol')!;
+    expect(within(list).getAllByText(/^(5|2)$/).map(element => element.textContent)).toEqual(['5', '2']);
+    expect(within(list).getAllByText('null')).toHaveLength(3);
+  });
 });

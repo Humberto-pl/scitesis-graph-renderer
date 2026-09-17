@@ -7,6 +7,7 @@ import type {
   DiagnosticInferenceStepView,
   DiagnosticTransitionView,
 } from './diagnosticGraphViewModel';
+import { buildDiagnosticTracePanelModels, type DiagnosticTracePanelModel } from './diagnosticTracePanelModel';
 
 export interface DiagnosticClaimRenderNode {
   id: string;
@@ -108,6 +109,7 @@ export interface DiagnosticGraphRenderModel {
   downstreamEffects: DiagnosticDownstreamEffectRenderItem[];
   frontier: DiagnosticFrontierRenderItem;
   unavailableDiagnosticReferences: UnavailableDiagnosticReference[];
+  traceSources: DiagnosticTracePanelModel[];
 }
 
 const claimNodeId = (id: string) => `claim:${id}`;
@@ -260,5 +262,5 @@ export function adaptDiagnosticGraphForRender(
     }
   });
 
-  return { nodes, edges, unavailableSourceReferences, unavailableTransitionReferences, breakpoints, downstreamEffects, frontier, unavailableDiagnosticReferences };
+  return { nodes, edges, unavailableSourceReferences, unavailableTransitionReferences, breakpoints, downstreamEffects, frontier, unavailableDiagnosticReferences, traceSources: buildDiagnosticTracePanelModels(viewModel) };
 }

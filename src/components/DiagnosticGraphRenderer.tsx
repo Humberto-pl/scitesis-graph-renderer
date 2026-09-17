@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Background, Controls, MarkerType, ReactFlow, type Edge, type Node } from '@xyflow/react';
 import type {
   DiagnosticBreakpointRenderItem,
@@ -8,6 +8,7 @@ import type {
   DiagnosticRenderEdge,
   DiagnosticRenderNode,
 } from '../diagnostic/diagnosticGraphRenderAdapter';
+import type { DiagnosticTracePanelModel } from '../diagnostic/diagnosticTracePanelModel';
 import type { TraceItem } from '../diagnostic/types';
 
 function nodeLabel(node: DiagnosticRenderNode) {
@@ -43,7 +44,26 @@ function FrontierInspector({ item }: { item: DiagnosticFrontierRenderItem }) {
   return <aside className="diagnostic-inspector frontier-inspector" aria-labelledby="frontier-inspector-title"><h2 id="frontier-inspector-title">DEFENDABILITY FRONTIER</h2><dl><dt>Scope ID</dt><dd>{value.scope_id}</dd><dt>Evaluation state ID</dt><dd>{value.evaluation_state_id}</dd><dt>Member claim IDs</dt><dd>{arrayValue(value.member_claim_ids)}</dd><dt>Frontier cardinality</dt><dd>{value.frontier_cardinality}</dd><dt>Graph version</dt><dd>{value.graph_version}</dd><dt>Diagnostic rule version</dt><dd>{value.diagnostic_rule_version}</dd><dt>Active adjudication refs</dt><dd>{arrayValue(value.active_adjudication_refs)}</dd><dt>Frontier status</dt><dd>{value.frontier_status}</dd><dt>Unavailable member claim IDs</dt><dd>{arrayValue(item.unavailableMemberClaimIds)}</dd></dl><ExplanationTrace trace={value.explanation_trace} /></aside>;
 }
 
-type Selection = { type: 'TRANSITION' | 'BREAKPOINT' | 'DOWNSTREAM' | 'FRONTIER'; id: string };
+function ReferenceGroup({ label, values }: { label: string; values: string[] }) {
+  return <section className="trace-reference-group" aria-label={label}><h3>{label}</h3><pre>{arrayValue(values)}</pre>{values.length > 0 && <small>Referencias literales; no resueltas en esta vista.</small>}</section>;
+}
+
+function TracePanel({ model }: { model: DiagnosticTracePanelModel }) {
+  return <section className="trace-panel" aria-labelledby="trace-panel-title">
+    <h2 id="trace-panel-title">TRACE / REFERENCES</h2>
+    <p className="trace-source"><strong>Selected source</strong> {model.sourceType}: <code>{model.sourceId}</code></p>
+    <ExplanationTrace trace={model.explanationTrace} />
+    <ReferenceGroup label="Provenance refs" values={model.provenanceRefs} />
+    <ReferenceGroup label="Adjudication refs" values={model.adjudicationRefs} />
+    <ReferenceGroup label="Diagnostic condition refs" values={model.diagnosticConditionRefs} />
+    <ReferenceGroup label="Defeater refs" values={model.defeaterRefs} />
+    <ReferenceGroup label="Alternative route refs" values={model.alternativeRouteRefs} />
+    {model.otherRefs.map(group => <ReferenceGroup key={group.kind} label={group.kind} values={group.refs} />)}
+    {model.literalFields.length > 0 && <section className="trace-literal-fields"><h3>Canonical fields</h3><dl>{model.literalFields.map(field => <Fragment key={field.name}><dt>{field.name}</dt><dd>{nullableValue(field.value)}</dd></Fragment>)}</dl></section>}
+  </section>;
+}
+
+type Selection = { type: DiagnosticTracePanelModel['sourceType']; id: string };
 
 export function DiagnosticGraphRenderer({ model }: { model: DiagnosticGraphRenderModel }) {
   const [selection, setSelection] = useState<Selection>();
@@ -51,6 +71,7 @@ export function DiagnosticGraphRenderer({ model }: { model: DiagnosticGraphRende
   const selectedBreakpoint = selection?.type === 'BREAKPOINT' ? model.breakpoints.find(item => item.id === selection.id) : undefined;
   const selectedDownstream = selection?.type === 'DOWNSTREAM' ? model.downstreamEffects.find(item => item.id === selection.id) : undefined;
   const selectedFrontier = selection?.type === 'FRONTIER' && selection.id === model.frontier.id ? model.frontier : undefined;
+  const selectedTrace = selection ? model.traceSources.find(source => source.sourceType === selection.type && source.sourceId === selection.id) : undefined;
   const nodes: Node[] = model.nodes.map(node => ({ id: node.id, position: node.position, data: { label: nodeLabel(node) }, className: `diagnostic-node diagnostic-${node.kind.toLowerCase()}` }));
   const edges: Edge[] = model.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: edge.segment === 'SOURCE_TO_STEP' ? 'source → inference' : 'inference → target', markerEnd: { type: MarkerType.ArrowClosed }, className: `diagnostic-edge diagnostic-edge-${edge.segment.toLowerCase()}${selectedEdge?.transitionKey === edge.transitionKey ? ' selected-transition' : ''}`, data: { transitionKey: edge.transitionKey, segment: edge.segment } }));
   const selectBreakpoint = (id: string) => setSelection({ type: 'BREAKPOINT', id });
@@ -59,16 +80,22 @@ export function DiagnosticGraphRenderer({ model }: { model: DiagnosticGraphRende
     <p className="diagnostic-note"><strong>H_e materializado:</strong> solo transitions ACTIVE provistas por Diagnostic Output; el renderer no reconstruye rutas.</p>
     {(model.unavailableTransitionReferences.length > 0 || model.unavailableDiagnosticReferences.length > 0) && <section className="diagnostic-missing-references" role="status" aria-label="Referencias no visualizadas"><strong>Referencias no visualizadas</strong><ul>{model.unavailableTransitionReferences.map((reference, index) => <li key={`${reference.transitionKey}:${reference.role}:${index}`}>{reference.role}: {reference.canonicalId}</li>)}{model.unavailableDiagnosticReferences.map(reference => <li key={`${reference.ownerId}:${reference.role}`}>{reference.role}: {reference.canonicalId}</li>)}</ul><span>No se crearon nodos sustitutos.</span></section>}
     <nav className="diagnostic-entity-list" aria-label="Entidades diagnósticas materializadas">
+      <button type="button" onClick={() => setSelection({ type: 'RUN_METADATA', id: 'run-metadata' })}>Inspeccionar trazabilidad del run</button>
+      {model.nodes.map(node => <button type="button" key={node.id} onClick={() => setSelection({ type: node.kind, id: node.id })} aria-label={`Inspeccionar ${node.kind === 'CLAIM' ? 'claim' : 'inference step'} ${node.canonicalId}`}>{node.kind}: {node.canonicalId}</button>)}
       {model.edges.map(edge => <button type="button" key={edge.id} data-testid={`transition-edge-${edge.id}`} onClick={() => setSelection({ type: 'TRANSITION', id: edge.transitionKey })} aria-label={`${edge.segment} de ${edge.transitionKey}`}>{edge.segment}: {edge.transitionKey}</button>)}
       {model.breakpoints.map(item => <button type="button" key={item.id} onClick={() => selectBreakpoint(item.id)} aria-label={`Inspeccionar breakpoint ${item.canonicalId}`}>Breakpoint: {item.canonicalId}</button>)}
       {model.downstreamEffects.map(item => <button type="button" key={item.id} onClick={() => selectDownstream(item.id)} aria-label={`Inspeccionar downstream effect ${item.id}`}>Downstream: {item.downstreamEffect.target_claim_id}</button>)}
       <button type="button" onClick={() => setSelection({ type: 'FRONTIER', id: model.frontier.id })} aria-label="Inspeccionar defendability frontier">Frontier: {model.frontier.frontier.frontier_cardinality} miembros</button>
+      {model.traceSources.filter(source => source.sourceType === 'REVIEW_REQUIRED_ITEM').map(source => <button type="button" key={source.sourceId} onClick={() => setSelection({ type: source.sourceType, id: source.sourceId })} aria-label={`Inspeccionar review required item ${source.sourceId}`}>Review required item: {source.sourceId}</button>)}
     </nav>
-    <div className="diagnostic-content"><div className="diagnostic-canvas" data-testid="diagnostic-graph-canvas"><ReactFlow nodes={nodes} edges={edges} onEdgeClick={(_event, edge) => setSelection({ type: 'TRANSITION', id: String(edge.data?.transitionKey) })} nodesConnectable={false} nodesDraggable={false} fitView><Background /><Controls /></ReactFlow></div>
-      {selectedEdge && <TransitionInspector edge={selectedEdge} />}
-      {selectedBreakpoint && <BreakpointInspector item={selectedBreakpoint} downstream={model.downstreamEffects.filter(effect => selectedBreakpoint.downstreamEffectIds.includes(effect.id))} selectDownstream={selectDownstream} />}
-      {selectedDownstream && <DownstreamInspector item={selectedDownstream} relatedBreakpoint={model.breakpoints.find(item => item.id === selectedDownstream.relatedBreakpointId)} selectBreakpoint={selectBreakpoint} />}
-      {selectedFrontier && <FrontierInspector item={selectedFrontier} />}
+    <div className="diagnostic-content"><div className="diagnostic-canvas" data-testid="diagnostic-graph-canvas"><ReactFlow nodes={nodes} edges={edges} onNodeClick={(_event, node) => { const source = model.nodes.find(item => item.id === node.id); if (source) setSelection({ type: source.kind, id: source.id }); }} onEdgeClick={(_event, edge) => setSelection({ type: 'TRANSITION', id: String(edge.data?.transitionKey) })} nodesConnectable={false} nodesDraggable={false} fitView><Background /><Controls /></ReactFlow></div>
+      {(selectedEdge || selectedBreakpoint || selectedDownstream || selectedFrontier || selectedTrace) && <div className="diagnostic-side-panels">
+        {selectedEdge && <TransitionInspector edge={selectedEdge} />}
+        {selectedBreakpoint && <BreakpointInspector item={selectedBreakpoint} downstream={model.downstreamEffects.filter(effect => selectedBreakpoint.downstreamEffectIds.includes(effect.id))} selectDownstream={selectDownstream} />}
+        {selectedDownstream && <DownstreamInspector item={selectedDownstream} relatedBreakpoint={model.breakpoints.find(item => item.id === selectedDownstream.relatedBreakpointId)} selectBreakpoint={selectBreakpoint} />}
+        {selectedFrontier && <FrontierInspector item={selectedFrontier} />}
+        {selectedTrace && <TracePanel model={selectedTrace} />}
+      </div>}
     </div>
   </main>;
 }
