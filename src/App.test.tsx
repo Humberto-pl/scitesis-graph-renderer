@@ -49,6 +49,42 @@ describe('App artifact import integration', () => {
     expect(screen.getByTestId('graph-canvas')).toBeInTheDocument();
   });
 
+  it('offers the structural subview only for FULL_GI and restores diagnosis when removed', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
+    expect(screen.queryByRole('button', { name: 'Mapa estructural G_I' })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(giFixture, 'full-gi.json')] } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Mapa estructural G_I' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Mapa estructural G_I' }));
+    expect(screen.getByTestId('gi-structural-graph-canvas')).toBeInTheDocument();
+    expect(screen.queryByTestId('diagnostic-graph-canvas')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Diagnóstico' }));
+    expect(screen.getByText('Def_e: TRUE')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Mapa estructural G_I' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar G_I' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Mapa estructural G_I' })).not.toBeInTheDocument());
+    expect(screen.getByTestId('diagnostic-graph-canvas')).toBeInTheDocument();
+  });
+
+  it('does not offer a structural map for MINIMAL_AUXILIARY_GI', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(giAuxiliaryEntities, 'minimal-gi.json')] } });
+    await waitFor(() => expect(screen.getByText(/G_I:.*minimal-gi\.json/)).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: 'Mapa estructural G_I' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('diagnostic-graph-canvas')).toBeInTheDocument();
+  });
+
+  it('allows a mismatched FULL_GI map while preserving its mismatch warning', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(giFixture, 'mismatch-full.json')] } });
+    await waitFor(() => expect(screen.getByText('LOADED_MISMATCH')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Mapa estructural G_I' }));
+    expect(screen.getByText(/no coincide con el Diagnostic Output activo/)).toBeInTheDocument();
+    expect(screen.getByText(/sin overlay diagnóstico/)).toBeInTheDocument();
+  });
+
   it('keeps the previous artifact visible after schema validation fails', async () => {
     render(<App />);
     expect(screen.getByText(/PRIMARY: Legacy · QUALIS · Demo incluida/)).toBeInTheDocument();
