@@ -2,6 +2,10 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import fixture from '../diagnostic/auxiliary/fixtures/gi-full-valid.json';
 import { loadGiGraphContract } from '../diagnostic/auxiliary/giGraphContract';
+import diagnosticFixture from '../diagnostic/fixtures/diagnostic-output-v0.1.2-viewmodel-rich.json';
+import { buildDiagnosticGraphViewModel } from '../diagnostic/diagnosticGraphViewModel';
+import { loadDiagnosticOutput } from '../diagnostic/diagnosticOutputLoader';
+import { buildGiDiagnosticOverlay } from '../diagnostic/giDiagnosticOverlayModel';
 import { adaptGiGraphForRender } from '../graph/giGraphRenderAdapter';
 import { buildGiGraphViewModel } from '../graph/giGraphViewModel';
 import { GiStructuralGraphRenderer } from './GiStructuralGraphRenderer';
@@ -10,6 +14,21 @@ function model() {
   const loaded = loadGiGraphContract(structuredClone(fixture));
   if (!loaded.ok) throw new Error(loaded.error.details.join('\n'));
   return adaptGiGraphForRender(buildGiGraphViewModel(loaded.artifact));
+}
+
+function modelWithOverlay() {
+  const value = model();
+  const diagnostic = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(diagnosticFixture)));
+  diagnostic.metadata.run_metadata.graph_ref = value.graphRef;
+  diagnostic.metadata.run_metadata.graph_version = value.graphVersion;
+  diagnostic.claims[0].claim_id = 'C1';
+  diagnostic.claims[0].adjudication_status = 'REVIEW_REQUIRED';
+  diagnostic.inferenceSteps[0].inference_step_id = 'I1';
+  diagnostic.reviewRequiredItems[0].subject_ref = 'C1';
+  diagnostic.transitions[0].target_claim_id = 'C1';
+  const result = buildGiDiagnosticOverlay(value, diagnostic);
+  if (result.status !== 'COMPATIBLE') throw new Error('expected compatible overlay');
+  return { value, overlay: result.overlay, diagnostic };
 }
 
 describe('GiStructuralGraphRenderer', () => {
@@ -81,5 +100,55 @@ describe('GiStructuralGraphRenderer', () => {
     render(<GiStructuralGraphRenderer model={model()} mismatch />);
     expect(screen.getByText(/sin overlay diagnóstico/)).toBeInTheDocument();
     expect(screen.getByText(/no coincide con el Diagnostic Output activo/)).toBeInTheDocument();
+  });
+
+  it('shows literal claim/inference/review badges and exact diagnostic inspection', () => {
+    const { value, overlay, diagnostic } = modelWithOverlay();
+    render(<GiStructuralGraphRenderer model={value} overlay={overlay} />);
+    expect(screen.getByText(`Def_e: ${diagnostic.claims[0].def_e_value}`)).toBeInTheDocument();
+    expect(screen.getByText(`Active_e: ${diagnostic.inferenceSteps[0].active_state}`)).toBeInTheDocument();
+    expect(screen.getAllByText('REVIEW_REQUIRED').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar entidad C1' }));
+    const inspector = screen.getByRole('complementary', { name: 'Inspector estructural G_I' });
+    expect(within(inspector).getByText('ENTIDAD G_I')).toBeInTheDocument();
+    expect(within(inspector).getByText('DIAGNÓSTICO')).toBeInTheDocument();
+    expect(within(inspector).getByText(`Review item · ${diagnostic.reviewRequiredItems[0].item_id}`)).toBeInTheDocument();
+    expect(within(inspector).getByText('H_e transition (registro literal)')).toBeInTheDocument();
+    const reformulation = within(inspector).getByText('maximum_defensible_reformulation');
+    expect(reformulation.nextElementSibling).toHaveTextContent('null');
+  });
+
+  it('omits structural null fields with the overlay off and on', () => {
+    const loaded = loadGiGraphContract({
+      ...structuredClone(fixture),
+      entities: structuredClone(fixture.entities).map(entity => entity.id === 'C1' ? { ...entity, subtype: null, discourse_role: null } : entity),
+    });
+    if (!loaded.ok) throw new Error(loaded.error.details.join('\n'));
+    const value = adaptGiGraphForRender(buildGiGraphViewModel(loaded.artifact));
+    const { overlay } = modelWithOverlay();
+    render(<GiStructuralGraphRenderer model={value} overlay={overlay} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar entidad C1' }));
+    expect(within(screen.getByRole('complementary')).queryByText('subtype')).not.toBeInTheDocument();
+    expect(within(screen.getByRole('complementary')).queryByText('discourse_role')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    expect(within(screen.getByRole('complementary')).queryByText('subtype')).not.toBeInTheDocument();
+    expect(within(screen.getByRole('complementary')).queryByText('discourse_role')).not.toBeInTheDocument();
+  });
+
+  it('turns annotations off without changing structural nodes, edges, focus, or layout', () => {
+    const { value, overlay, diagnostic } = modelWithOverlay();
+    const { container } = render(<GiStructuralGraphRenderer model={value} overlay={overlay} />);
+    const position = container.querySelector<HTMLElement>('.react-flow__node[data-id="C1"]')?.style.transform;
+    expect(screen.getByText(`Def_e: ${diagnostic.claims[0].def_e_value}`)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    expect(screen.queryByText(`Def_e: ${diagnostic.claims[0].def_e_value}`)).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Inspeccionar entidad/ })).toHaveLength(value.nodes.length);
+    expect(screen.getAllByRole('button', { name: /Inspeccionar relación/ })).toHaveLength(value.edges.length);
+    expect(screen.getByRole('status')).toHaveTextContent('4/4 nodos · 3/3 relaciones');
+    expect(container.querySelector<HTMLElement>('.react-flow__node[data-id="C1"]')?.style.transform).toBe(position);
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar entidad E1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enfocar nodo seleccionado' }));
+    expect(screen.getByRole('status')).toHaveTextContent('2/4 nodos · 1/3 relaciones');
   });
 });
