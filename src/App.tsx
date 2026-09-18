@@ -5,7 +5,7 @@ import { GraphRenderer } from './components/GraphRenderer';
 import { PrimaryArtifactLoader, type PrimaryArtifactKind, type PrimaryImportError } from './components/PrimaryArtifactLoader';
 import { classifyGd, classifyGi, createAuxiliaryContext, notLoaded } from './diagnostic/auxiliary/context';
 import { loadGdArtifact } from './diagnostic/auxiliary/gdLoader';
-import { loadGiArtifact } from './diagnostic/auxiliary/giLoader';
+import { giArtifactForAuxiliary, loadGiSlotArtifact, type LoadedGiArtifact } from './diagnostic/auxiliary/giLoader';
 import type { AuxiliaryArtifactState, GdArtifact, GiArtifact } from './diagnostic/auxiliary/types';
 import { adaptDiagnosticGraphForRender } from './diagnostic/diagnosticGraphRenderAdapter';
 import { buildDiagnosticGraphViewModel } from './diagnostic/diagnosticGraphViewModel';
@@ -41,13 +41,13 @@ export default function App() {
   const [mode, setMode] = useState<PrimaryMode>('legacy');
   const [legacy, setLegacy] = useState<MainSlot<ConfirmedSimulatedGraphArtifact>>({ artifact: legacyDemo, fileName: 'QUALIS · Demo incluida', source: 'DEMO' });
   const [diagnostic, setDiagnostic] = useState<MainSlot<DiagnosticOutput>>({ artifact: diagnosticDemo, fileName: 'Diagnostic Output · Demo incluida', source: 'DEMO' });
-  const [giSlot, setGiSlot] = useState<AuxiliarySlot<GiArtifact>>({});
+  const [giSlot, setGiSlot] = useState<AuxiliarySlot<LoadedGiArtifact>>({});
   const [gdSlot, setGdSlot] = useState<AuxiliarySlot<GdArtifact>>({});
 
   const legacyModel = useMemo(() => buildCanonicalSimulatorGraphViewModel(legacy.artifact), [legacy.artifact]);
   const diagnosticViewModel = useMemo(() => buildDiagnosticGraphViewModel(diagnostic.artifact), [diagnostic.artifact]);
   const diagnosticModel = useMemo(() => adaptDiagnosticGraphForRender(diagnosticViewModel), [diagnosticViewModel]);
-  const gi = useMemo(() => giSlot.artifact ? classifyGi(giSlot.artifact, diagnosticViewModel.metadata.run_metadata, giSlot.fileName) : notLoaded<GiArtifact>(), [giSlot.artifact, giSlot.fileName, diagnosticViewModel]);
+  const gi = useMemo(() => giSlot.artifact ? classifyGi(giArtifactForAuxiliary(giSlot.artifact), diagnosticViewModel.metadata.run_metadata, giSlot.fileName) : notLoaded<GiArtifact>(), [giSlot.artifact, giSlot.fileName, diagnosticViewModel]);
   const gd = useMemo(() => gdSlot.artifact ? classifyGd(gdSlot.artifact, diagnosticViewModel.metadata.run_metadata, gdSlot.fileName) : notLoaded<GdArtifact>(), [gdSlot.artifact, gdSlot.fileName, diagnosticViewModel]);
   const auxiliaryContext = useMemo(() => createAuxiliaryContext(gi, gd), [gi, gd]);
 
@@ -68,7 +68,7 @@ export default function App() {
       setDiagnostic({ artifact, fileName, source: 'FILE' });
     } catch (reason) { setDiagnostic(current => ({ ...current, error: diagnosticError(reason) })); }
   };
-  const loadGi = (value: unknown, fileName: string) => { const result = loadGiArtifact(value); setGiSlot(current => result.ok ? { artifact: result.artifact, fileName } : { ...current, error: result.error }); };
+  const loadGi = (value: unknown, fileName: string) => { const result = loadGiSlotArtifact(value); setGiSlot(current => result.ok ? { artifact: result.artifact, fileName } : { ...current, error: result.error }); };
   const loadGd = (value: unknown, fileName: string) => { const result = loadGdArtifact(value); setGdSlot(current => result.ok ? { artifact: result.artifact, fileName } : { ...current, error: result.error }); };
   const kind: PrimaryArtifactKind = mode === 'legacy' ? 'LEGACY_CONFIRMED_SIMULATED_GRAPH' : 'DIAGNOSTIC_OUTPUT';
   const metadata = diagnosticViewModel.metadata.run_metadata;

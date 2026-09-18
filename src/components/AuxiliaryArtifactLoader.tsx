@@ -1,7 +1,8 @@
 import type { AuxiliaryArtifactKind, AuxiliaryLoadError } from '../diagnostic/auxiliary/types';
+import type { GiSlotLoadError } from '../diagnostic/auxiliary/giLoader';
 import { JsonFileInput, type JsonFileError } from './JsonFileInput';
 
-export type AuxiliaryImportError = AuxiliaryLoadError | JsonFileError;
+export type AuxiliaryImportError = AuxiliaryLoadError | GiSlotLoadError | JsonFileError;
 
 export function AuxiliaryArtifactLoader({ kind, onJson, onParseError, error }: {
   kind: AuxiliaryArtifactKind;

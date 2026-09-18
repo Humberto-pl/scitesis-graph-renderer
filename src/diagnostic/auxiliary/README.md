@@ -1,21 +1,34 @@
 # Auxiliary G_I / G_D boundary
 
-This directory implements a deliberately small **reader boundary**, not a new
-canonical schema. The repository does not contain executable G_I or G_D
-schemas. The frozen diagnostic authorities establish separate snapshot
+This directory keeps a deliberately small auxiliary **reader boundary** and
+also provides the executable full G_I structural contract. G_D still has no
+executable full schema. The frozen diagnostic authorities establish separate snapshot
 identity (`graph_ref`/`graph_version` and
 `diagnostic_graph_ref`/`diagnostic_graph_version`) and exact ID resolution.
 The conceptual simulator contract additionally documents an `entities[]`
 collection with literal `id`, `canonical_type`, `label`, and `text` fields.
 
-Accordingly, the supported test shape is limited to:
+Within the explicitly selected G_I slot, the application first tries the full
+contract and then the minimum auxiliary reader. It stores the successful result
+as an explicit `FULL_GI` or `MINIMAL_AUXILIARY_GI` profile. This is role-local
+fallback, not general artifact autodetection. `asGiAuxiliaryArtifact` exposes a
+full artifact to exact reference resolution without copying its entities;
+minimum artifacts participate directly.
+
+The presence of `relations`, `inference_steps`, or `premise_groups` declares a
+full G_I attempt even when the field value is malformed. A failed full contract
+in that case fails closed and is never retried as a minimum artifact.
+
+The minimum auxiliary shape is limited to:
 
 * G_I: `graph_ref`, `graph_version`, and `entities[]`;
 * G_D: `diagnostic_graph_ref`, `diagnostic_graph_version`, and `entities[]`;
 * entity: non-empty `id`, with optional literal `canonical_type`, `type_id`,
   `label`, and `text`.
 
-All remaining fields are opaque raw auxiliary data. They are never used to
+All remaining fields at the minimum auxiliary boundary are opaque raw data. They are never used to
 derive claims, inference states, transitions, breakpoints, downstream effects,
-or frontier membership. A future executable graph contract should replace
-this minimum reader rather than expanding it by inference.
+or frontier membership. A minimum artifact is auxiliary-only and never gains
+missing relations or other structural collections. Only `FULL_GI` may feed a
+future `GiGraphViewModel`; no structural rendering exists yet. The full G_I
+contract likewise does not infer, repair, or render any structure.

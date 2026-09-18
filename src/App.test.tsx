@@ -2,13 +2,21 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
 import qualis from './fixtures/simulator-v0.3/QUALIS/confirmed_simulated_graph.json';
-import gi from './diagnostic/auxiliary/fixtures/gi-minimal-compatible.json';
+import giFixture from './diagnostic/auxiliary/fixtures/gi-full-valid.json';
+import giAuxiliaryEntities from './diagnostic/auxiliary/fixtures/gi-minimal-compatible.json';
 import gd from './diagnostic/auxiliary/fixtures/gd-minimal-compatible.json';
 import gdMismatch from './diagnostic/auxiliary/fixtures/gd-mismatch.json';
 import diagnostic from './diagnostic/fixtures/diagnostic-output-v0.1.2-viewmodel-rich.json';
 import pilot from './diagnostic/fixtures/pilot-r01/diagnostic-output-v0.1.2-pilot-r01.json';
 import pilotGi from './diagnostic/fixtures/pilot-r01/gi-pilot-r01-minimal.json';
 import pilotGd from './diagnostic/fixtures/pilot-r01/gd-pilot-r01-minimal.json';
+
+const gi = {
+  ...structuredClone(giFixture),
+  graph_ref: 'graph-minimal',
+  graph_version: '1',
+  entities: [...structuredClone(giFixture.entities), ...structuredClone(giAuxiliaryEntities.entities.slice(0, 2))],
+};
 
 const artifactFile = (artifact: unknown, name: string) => ({
   name,
@@ -176,12 +184,14 @@ describe('App artifact import integration', () => {
     fireEvent.change(screen.getByLabelText('Cargar G_D'), { target: { files: [artifactFile(gd, 'gd.json')] } });
     await waitFor(() => expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2));
 
-    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile({}, 'bad-gi.json')] } });
-    await waitFor(() => expect(screen.getByText(/carga nueva fallida: UNSUPPORTED_SHAPE/)).toBeInTheDocument());
+    const invalidFullGi = structuredClone(gi);
+    invalidFullGi.relations[0].source_id = 'missing-source';
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(invalidFullGi, 'bad-gi.json')] } });
+    await waitFor(() => expect(screen.getByText(/carga nueva fallida: INVALID_GI_ARTIFACT/)).toBeInTheDocument());
     expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2);
 
     fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(gi, 'gi-reloaded.json')] } });
-    await waitFor(() => expect(screen.queryByText(/carga nueva fallida: UNSUPPORTED_SHAPE/)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText(/carga nueva fallida: INVALID_GI_ARTIFACT/)).not.toBeInTheDocument());
     expect(screen.getByText(/G_I:.*gi-reloaded\.json/)).toBeInTheDocument();
 
     const other = structuredClone(diagnostic);
