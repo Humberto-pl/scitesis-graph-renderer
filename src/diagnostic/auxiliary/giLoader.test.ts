@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import pilotGi from '../fixtures/pilot-r01/gi-pilot-r01-minimal.json';
 import fixture from './fixtures/gi-full-valid.json';
-import { asGiAuxiliaryArtifact, giArtifactForAuxiliary, isFullGiArtifact, loadFullGiArtifact, loadGiSlotArtifact } from './giLoader';
+import { asGiAuxiliaryArtifact, giArtifactForAuxiliary, hasFullGiStructuralMarkers, isFullGiArtifact, loadFullGiArtifact, loadGiSlotArtifact } from './giLoader';
 
 describe('full G_I application loader', () => {
   it('delegates to the executable contract and preserves the complete artifact without mutation', () => {
@@ -78,6 +78,24 @@ describe('full G_I application loader', () => {
     if (!result.ok) {
       expect(result.error.details.some(detail => detail.startsWith('FULL_GI:'))).toBe(true);
       expect(result.error.details.some(detail => detail.startsWith('MINIMAL_AUXILIARY_GI:'))).toBe(true);
+    }
+  });
+
+  it.each([
+    ['missing relation source', (input: Record<string, unknown>) => { (input.relations as Array<Record<string, unknown>>)[0].source_id = 'missing'; }, 'source_id references missing entity'],
+    ['missing relation target', (input: Record<string, unknown>) => { (input.relations as Array<Record<string, unknown>>)[0].target_id = 'missing'; }, 'target_id references missing entity'],
+    ['invalid relations type', (input: Record<string, unknown>) => { input.relations = 'bad'; }, 'relations must be an array'],
+    ['invalid inference steps type', (input: Record<string, unknown>) => { input.inference_steps = 'bad'; }, 'inference_steps must be an array'],
+    ['invalid premise groups type', (input: Record<string, unknown>) => { input.premise_groups = 'bad'; }, 'premise_groups must be an array'],
+  ])('rejects a full G_I attempt with %s instead of degrading to minimal', (_name, mutate, expectedDetail) => {
+    const input = structuredClone(fixture) as unknown as Record<string, unknown>;
+    mutate(input);
+    expect(hasFullGiStructuralMarkers(input)).toBe(true);
+    const result = loadGiSlotArtifact(input);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.details.some(detail => detail.includes(expectedDetail))).toBe(true);
+      expect(result.error.details.every(detail => detail.startsWith('FULL_GI:'))).toBe(true);
     }
   });
 });

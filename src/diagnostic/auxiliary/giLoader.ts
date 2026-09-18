@@ -34,6 +34,10 @@ export function giArtifactForAuxiliary(loaded: LoadedGiArtifact): GiArtifact {
   return isFullGiArtifact(loaded) ? asGiAuxiliaryArtifact(loaded.artifact) : loaded.artifact;
 }
 
+export function hasFullGiStructuralMarkers(input: unknown): boolean {
+  return record(input) && ['relations', 'inference_steps', 'premise_groups'].some(key => Object.prototype.hasOwnProperty.call(input, key));
+}
+
 /** Minimal read boundary; this is deliberately not a complete G_I schema. */
 export function loadGiArtifact(input: unknown): AuxiliaryLoadResult<GiArtifact> {
   const details: string[] = [];
@@ -49,6 +53,17 @@ export function loadGiArtifact(input: unknown): AuxiliaryLoadResult<GiArtifact> 
 export function loadGiSlotArtifact(input: unknown): GiSlotLoadResult {
   const full = loadFullGiArtifact(input);
   if (full.ok) return { ok: true, artifact: { profile: 'FULL_GI', artifact: full.artifact } };
+
+  if (hasFullGiStructuralMarkers(input)) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_GI_ARTIFACT',
+        message: 'El artifact materializa estructura G_I pero no cumple el contrato completo.',
+        details: full.error.details.map(detail => `FULL_GI: ${detail}`),
+      },
+    };
+  }
 
   const minimal = loadGiArtifact(input);
   if (minimal.ok) return { ok: true, artifact: { profile: 'MINIMAL_AUXILIARY_GI', artifact: minimal.artifact } };

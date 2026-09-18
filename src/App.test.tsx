@@ -184,7 +184,9 @@ describe('App artifact import integration', () => {
     fireEvent.change(screen.getByLabelText('Cargar G_D'), { target: { files: [artifactFile(gd, 'gd.json')] } });
     await waitFor(() => expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2));
 
-    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile({}, 'bad-gi.json')] } });
+    const invalidFullGi = structuredClone(gi);
+    invalidFullGi.relations[0].source_id = 'missing-source';
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(invalidFullGi, 'bad-gi.json')] } });
     await waitFor(() => expect(screen.getByText(/carga nueva fallida: INVALID_GI_ARTIFACT/)).toBeInTheDocument());
     expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2);
 

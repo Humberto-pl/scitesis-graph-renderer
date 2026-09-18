@@ -15,6 +15,10 @@ fallback, not general artifact autodetection. `asGiAuxiliaryArtifact` exposes a
 full artifact to exact reference resolution without copying its entities;
 minimum artifacts participate directly.
 
+The presence of `relations`, `inference_steps`, or `premise_groups` declares a
+full G_I attempt even when the field value is malformed. A failed full contract
+in that case fails closed and is never retried as a minimum artifact.
+
 The minimum auxiliary shape is limited to:
 
 * G_I: `graph_ref`, `graph_version`, and `entities[]`;
