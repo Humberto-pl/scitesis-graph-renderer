@@ -79,3 +79,8 @@
 .gi-diagnostic-downstream-unknown { border-style: dotted !important; }
 .gi-diagnostic-frontier-member { outline: 2px dashed currentColor; outline-offset: 2px; }
 .gi-frontier-summary { margin: .5rem 0; }
+.gi-connector-legend{margin:0;padding:4px 16px;border-bottom:1px solid #ccd2dc;background:#fff8e8;font-size:11px;font-weight:700}
+.gi-diagnostic-connector-breakpoint .react-flow__edge-path{stroke:#9a4d16;stroke-width:2;stroke-dasharray:9 5}
+.gi-diagnostic-connector-downstream .react-flow__edge-path{stroke:#67458a;stroke-width:2;stroke-dasharray:2 5}
+.gi-diagnostic-connector-label .react-flow__edge-text{font-size:10px;font-weight:700}
+.gi-connector-inspector section{margin-top:14px;padding-top:8px;border-top:1px solid #ccd2dc}

@@ -33,6 +33,8 @@ export interface GiDiagnosticOverlayModel {
   readonly frontier: DiagnosticFrontierView;
   /** Complete materialized collection, retained for exact reference resolution only. */
   readonly breakpoints: readonly DiagnosticBreakpointView[];
+  /** Complete materialized collection, retained for exact reference resolution only. */
+  readonly downstreamEffects: readonly DiagnosticDownstreamEffectView[];
   readonly unmatchedBreakpointStepIds: readonly string[];
   readonly unmatchedBreakpointTargetIds: readonly string[];
   readonly unmatchedDownstreamEffects: readonly DiagnosticDownstreamEffectView[];
@@ -137,6 +139,7 @@ export function buildGiDiagnosticOverlay(
       unmatchedReviewItemIds: diagnosticModel.reviewRequiredItems.filter(item => !nodeIds.has(item.subject_ref)).map(item => item.item_id),
       frontier: structuredClone(diagnosticModel.frontier),
       breakpoints: structuredClone(diagnosticModel.breakpoints),
+      downstreamEffects: structuredClone(diagnosticModel.downstreamEffects),
       unmatchedBreakpointStepIds: diagnosticModel.breakpoints.filter(item => !nodeIds.has(item.breakpoint_step_id)).map(item => item.breakpoint_step_id),
       unmatchedBreakpointTargetIds: diagnosticModel.breakpoints.filter(item => !nodeIds.has(item.affected_transition_target_id)).map(item => item.affected_transition_target_id),
       unmatchedDownstreamEffects: structuredClone(diagnosticModel.downstreamEffects.filter(item => !nodeIds.has(item.target_claim_id))),

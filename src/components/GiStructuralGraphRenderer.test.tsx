@@ -6,6 +6,7 @@ import diagnosticFixture from '../diagnostic/fixtures/diagnostic-output-v0.1.2-v
 import { buildDiagnosticGraphViewModel } from '../diagnostic/diagnosticGraphViewModel';
 import { loadDiagnosticOutput } from '../diagnostic/diagnosticOutputLoader';
 import { buildGiDiagnosticOverlay } from '../diagnostic/giDiagnosticOverlayModel';
+import { buildGiDiagnosticConnectorModel } from '../diagnostic/giDiagnosticConnectorModel';
 import { adaptGiGraphForRender } from '../graph/giGraphRenderAdapter';
 import { buildGiGraphViewModel } from '../graph/giGraphViewModel';
 import { GiStructuralGraphRenderer } from './GiStructuralGraphRenderer';
@@ -29,11 +30,12 @@ function modelWithOverlay() {
   diagnostic.breakpoints[0].breakpoint_step_id = 'I1';
   diagnostic.breakpoints[0].affected_transition_target_id = 'C1';
   diagnostic.downstreamEffects[0].target_claim_id = 'C1';
+  diagnostic.downstreamEffects[0].failure_ref = diagnostic.breakpoints[0].breakpoint_id;
   diagnostic.frontier.member_claim_ids = ['C1'];
 
   const result = buildGiDiagnosticOverlay(value, diagnostic);
   if (result.status !== 'COMPATIBLE') throw new Error('expected compatible overlay');
-  return { value, overlay: result.overlay, diagnostic };
+  return { value, overlay: result.overlay, connectorModel: buildGiDiagnosticConnectorModel(value, result.overlay), diagnostic };
 }
 
 describe('GiStructuralGraphRenderer', () => {
@@ -187,6 +189,36 @@ describe('GiStructuralGraphRenderer', () => {
     render(<GiStructuralGraphRenderer model={values.value} overlay={result.overlay} />);
     expect(screen.getByText(/Frontier: REVIEW_REQUIRED · cardinalidad materializada: 0/)).toBeInTheDocument();
     expect(screen.queryByText('FRONTIER')).not.toBeInTheDocument();
+  });
+
+  it('renders separately toggleable diagnostic connectors without changing structural counts, layout, or focus', () => {
+    const { value, overlay, connectorModel } = modelWithOverlay();
+    const { container } = render(<GiStructuralGraphRenderer model={value} overlay={overlay} connectorModel={connectorModel} />);
+    const position = container.querySelector<HTMLElement>('.react-flow__node[data-id="C1"]')?.style.transform;
+    expect(screen.getByText(`Breakpoint · ${overlay.breakpoints[0].breakpoint_id}`)).toBeInTheDocument();
+    expect(screen.getByText(`Downstream · ${overlay.downstreamEffects[0].affected_state}`)).toBeInTheDocument();
+    expect(container.querySelectorAll('.gi-diagnostic-connector-breakpoint')).toHaveLength(1);
+    expect(container.querySelectorAll('.gi-diagnostic-connector-downstream')).toHaveLength(1);
+    expect(screen.getByRole('status')).toHaveTextContent('3/3 relaciones · 2 conectores diagnósticos visibles');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar conectores diagnósticos' }));
+    expect(screen.queryByText(`Breakpoint · ${overlay.breakpoints[0].breakpoint_id}`)).not.toBeInTheDocument();
+    expect(screen.getByText('BREAKPOINT')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('3/3 relaciones · 0 conectores diagnósticos visibles');
+    expect(container.querySelector<HTMLElement>('.react-flow__node[data-id="C1"]')?.style.transform).toBe(position);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar conectores diagnósticos' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar entidad E1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enfocar nodo seleccionado' }));
+    expect(screen.getByRole('status')).toHaveTextContent('2/4 nodos · 1/3 relaciones · 0 conectores diagnósticos visibles');
+  });
+
+  it('uses a connector-specific inspector rather than the G_I relation inspector', () => {
+    const { value, overlay, connectorModel } = modelWithOverlay();
+    render(<GiStructuralGraphRenderer model={value} overlay={overlay} connectorModel={connectorModel} />);
+    fireEvent.click(screen.getByRole('button', { name: /Inspeccionar conector diagnóstico diag:breakpoint/ }));
+    const inspector = screen.getByRole('complementary', { name: 'Inspector de conector diagnóstico' });
+    expect(inspector).toHaveTextContent('CONECTOR DIAGNÓSTICO');
+    expect(inspector).toHaveTextContent('Conector visual de referencia diagnóstica; no es una relation G_I.');
+    expect(inspector).not.toHaveTextContent('RELACIÓN G_I');
   });
 
 });
