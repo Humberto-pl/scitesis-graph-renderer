@@ -8,10 +8,12 @@ identity (`graph_ref`/`graph_version` and
 The conceptual simulator contract additionally documents an `entities[]`
 collection with literal `id`, `canonical_type`, `label`, and `text` fields.
 
-The application validates and stores complete G_I files through
-`loadFullGiArtifact`; `asGiAuxiliaryArtifact` then exposes the same validated
-object to exact reference resolution without copying or reducing its entities.
-The legacy minimum reader remains available to existing callers.
+Within the explicitly selected G_I slot, the application first tries the full
+contract and then the minimum auxiliary reader. It stores the successful result
+as an explicit `FULL_GI` or `MINIMAL_AUXILIARY_GI` profile. This is role-local
+fallback, not general artifact autodetection. `asGiAuxiliaryArtifact` exposes a
+full artifact to exact reference resolution without copying its entities;
+minimum artifacts participate directly.
 
 The minimum auxiliary shape is limited to:
 
@@ -22,5 +24,7 @@ The minimum auxiliary shape is limited to:
 
 All remaining fields at the minimum auxiliary boundary are opaque raw data. They are never used to
 derive claims, inference states, transitions, breakpoints, downstream effects,
-or frontier membership. The full G_I contract likewise does not infer, repair,
-or render any structure.
+or frontier membership. A minimum artifact is auxiliary-only and never gains
+missing relations or other structural collections. Only `FULL_GI` may feed a
+future `GiGraphViewModel`; no structural rendering exists yet. The full G_I
+contract likewise does not infer, repair, or render any structure.

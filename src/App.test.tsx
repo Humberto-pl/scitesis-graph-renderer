@@ -17,7 +17,6 @@ const gi = {
   graph_version: '1',
   entities: [...structuredClone(giFixture.entities), ...structuredClone(giAuxiliaryEntities.entities.slice(0, 2))],
 };
-const pilotFullGi = { ...structuredClone(pilotGi), relations: [] };
 
 const artifactFile = (artifact: unknown, name: string) => ({
   name,
@@ -186,11 +185,11 @@ describe('App artifact import integration', () => {
     await waitFor(() => expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2));
 
     fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile({}, 'bad-gi.json')] } });
-    await waitFor(() => expect(screen.getByText(/carga nueva fallida: INVALID_GI_GRAPH/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/carga nueva fallida: INVALID_GI_ARTIFACT/)).toBeInTheDocument());
     expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2);
 
     fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(gi, 'gi-reloaded.json')] } });
-    await waitFor(() => expect(screen.queryByText(/carga nueva fallida: INVALID_GI_GRAPH/)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText(/carga nueva fallida: INVALID_GI_ARTIFACT/)).not.toBeInTheDocument());
     expect(screen.getByText(/G_I:.*gi-reloaded\.json/)).toBeInTheDocument();
 
     const other = structuredClone(diagnostic);
@@ -248,7 +247,7 @@ describe('App artifact import integration', () => {
   it('loads PILOT auxiliaries through file inputs, resolves their refs, and removal restores unresolved', async () => {
     render(<App />);
     await loadPilot();
-    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(pilotFullGi, 'gi-pilot.json')] } });
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(pilotGi, 'gi-pilot.json')] } });
     fireEvent.change(screen.getByLabelText('Cargar G_D'), { target: { files: [artifactFile(pilotGd, 'gd-pilot.json')] } });
     await waitFor(() => expect(screen.getAllByText('LOADED_COMPATIBLE')).toHaveLength(2));
     fireEvent.click(screen.getByRole('button', { name: /STEP_TO_TARGET de transition:GI-R01-PROV-C1:I1:C1:0/ }));

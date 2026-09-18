@@ -26,9 +26,9 @@ Diagnostic Output JSON
   → DiagnosticGraphRenderer
 
 G_I JSON
-  → full G_I loader
-  → executable structural contract
-  → stored validated full G_I
+  → explicit G_I slot loader
+  → FULL_GI executable structural contract, or minimum auxiliary G_I reader
+  → stored tagged profile
   → compatibility classification
   → exact reference resolver
   → trace enrichment
@@ -95,7 +95,9 @@ These IDs must not be read back as diagnostic conclusions. Canonical IDs and fie
 
 The executable full G_I contract validates materialized entities, relations, and, when present, inference steps and premise groups. It preserves compatible extensions and checks only declared shape, unique IDs, and internal references. It does not add relations, reconstruct topology, or assess methodological or diagnostic correctness. This PR exposes that contract without claiming that the renderer already supports a complete structural map.
 
-The application file flow stores the complete validated G_I, including its structural collections and compatible extensions. A read-only adapter exposes that same object's `entities` to the existing minimum auxiliary boundary for exact Diagnostic Output reference resolution; it does not create a second G_I representation. G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. A future map will be built from materialized G_I structure and annotated by Diagnostic Output, not inferred or repaired by the renderer.
+The application G_I slot stores an explicit `FULL_GI` or `MINIMAL_AUXILIARY_GI` profile. Full artifacts retain their structural collections and compatible extensions; a read-only adapter exposes the same object's `entities` to exact reference resolution. Minimum artifacts remain auxiliary-only and never acquire missing relations or other structural collections. Only `FULL_GI` is eligible for a future `GiGraphViewModel`. The fallback is confined to the explicitly selected G_I role and is not general artifact autodetection.
+
+G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. A future map will be built from materialized full G_I structure and annotated by Diagnostic Output, not inferred or repaired by the renderer.
 
 There is still no `GiGraphViewModel`, structural G_I renderer, complete map, or diagnostic overlay. Loading G_I only makes validated structure available in memory for later work.
 
