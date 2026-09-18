@@ -31,6 +31,10 @@ G_I JSON
   → stored tagged profile
   → FULL_GI only: GiGraphViewModel
   → GiGraphRenderAdapter (render identities and authoritative LR/TB positions)
+  → structural topology
+
+DiagnosticGraphViewModel + GiGraphRenderAdapter output
+  → GiDiagnosticOverlayModel (exact-ID node annotations only)
   → GiStructuralGraphRenderer
   → compatibility classification
   → exact reference resolver
@@ -60,7 +64,8 @@ The import UI routes by the role selected by the user. `JsonFileInput` only read
 - `DiagnosticGraphRenderer`: display and selection.
 - `GiGraphViewModel`: pure structural projection of a validated `FULL_GI`; no diagnosis or presentation.
 - `GiGraphRenderAdapter`: the sole G_I layout authority; relayout changes node positions only.
-- `GiStructuralGraphRenderer`: consumes adapter positions and exposes structural selection, focus, filters, and literal metadata inspection.
+- `GiDiagnosticOverlayModel`: pure, fail-closed association of diagnostic records to existing G_I nodes by exact, case-sensitive ID.
+- `GiStructuralGraphRenderer`: consumes adapter positions and an optional prepared overlay; it exposes structural selection, focus, filters, literal metadata inspection, and an explicit diagnostic toggle.
 - Auxiliary resolver: exact, case-sensitive reference resolution without reinterpretation.
 - Legacy loader/ViewModel/`GraphRenderer`: preserved independent compatibility pipeline.
 
@@ -103,7 +108,9 @@ The executable full G_I contract validates materialized entities, relations, and
 
 The application G_I slot stores an explicit `FULL_GI` or `MINIMAL_AUXILIARY_GI` profile. Full artifacts retain their structural collections and compatible extensions; a read-only adapter exposes the same object's `entities` to exact reference resolution. The presence of `relations`, `inference_steps`, or `premise_groups` marks a full G_I attempt: failure of the full contract then fails the load, without fallback. Minimum artifacts remain auxiliary-only and never acquire missing structural collections. Only `FULL_GI` is eligible for `GiGraphViewModel` and structural rendering. The fallback is confined to marker-free artifacts in the explicitly selected G_I role and is not general artifact autodetection.
 
-G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. The current map presents materialized full G_I structure without a diagnostic overlay; any future annotation must come from Diagnostic Output, not be inferred or repaired by the renderer.
+G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer never derives diagnosis from G_I. `GiDiagnosticOverlayModel` annotates existing structural nodes only when Diagnostic Output `graph_ref` and `graph_version` exactly equal the render model identity. A mismatch produces no overlay. Claims map only when `claim_id === canonicalId`, inference steps only when `inference_step_id === canonicalId`, and review items only when `subject_ref === canonicalId`; matching is case-sensitive, without normalization, aliases, or heuristics. Unmatched diagnostic IDs remain explicit in overlay coverage, and absence of a diagnostic record does not mean `UNKNOWN`.
+
+G_I remains the sole authority for nodes, edges, endpoints, layout, focus, and structural filters. The optional overlay does not create, remove, hide, restyle, or diagnose edges and does not create nodes. Its ON/OFF toggle changes annotations only. Materialized H_e transitions may appear as literal inspector records when one of their three ID fields exactly matches the selected node, but they are never projected onto G_I relations or converted into React Flow edges. Breakpoints, downstream effects, frontier membership, propagation, and maximality remain exclusively in the independent diagnostic renderer and are intentionally not visualized on the structural map until PR6.
 
 `GiGraphViewModel` is a deterministic, presentation-neutral projection available only for `FULL_GI`. Its nodes and edges correspond 1:1, in input order, to materialized entities and relations. It retains materialized inference steps, premise groups, and structural metadata separately; absent optional collections become empty view-model collections only for consumption convenience. It neither reconstructs relations nor turns inference steps or premise groups into nodes or edges. It performs no layout and contains no diagnostic state. Layout belongs exclusively to `GiGraphRenderAdapter` and its pure relayout helper; the renderer consumes the resulting positions without recalculating them.
 
@@ -113,7 +120,7 @@ There is still no complete executable G_D schema. Its current reader accepts onl
 
 ## Known limits and future work
 
-- an authoritative executable G_D schema and a future diagnostic overlay over structural G_I rendering;
+- an authoritative executable G_D schema and PR6 projection of materialized breakpoints/downstream/frontier over structural G_I;
 - dedicated compatibility-maximums presentation;
 - richer layout (including broader claim/inference placement needs), without changing topology;
 - production packaging and operational hardening;

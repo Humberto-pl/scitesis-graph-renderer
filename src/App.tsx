@@ -10,6 +10,7 @@ import { giArtifactForAuxiliary, loadGiSlotArtifact, type LoadedGiArtifact } fro
 import type { AuxiliaryArtifactState, GdArtifact, GiArtifact } from './diagnostic/auxiliary/types';
 import { adaptDiagnosticGraphForRender } from './diagnostic/diagnosticGraphRenderAdapter';
 import { buildDiagnosticGraphViewModel } from './diagnostic/diagnosticGraphViewModel';
+import { buildGiDiagnosticOverlay } from './diagnostic/giDiagnosticOverlayModel';
 import { DiagnosticOutputValidationError, loadDiagnosticOutput } from './diagnostic/diagnosticOutputLoader';
 import diagnosticFixture from './diagnostic/fixtures/diagnostic-output-v0.1.2-viewmodel-rich.json';
 import type { DiagnosticOutput } from './diagnostic/types';
@@ -58,6 +59,9 @@ export default function App() {
   const giRenderModel = useMemo(() => giSlot.artifact?.profile === 'FULL_GI'
     ? adaptGiGraphForRender(buildGiGraphViewModel(giSlot.artifact.artifact))
     : undefined, [giSlot.artifact]);
+  const giOverlayResult = useMemo(() => giRenderModel
+    ? buildGiDiagnosticOverlay(giRenderModel, diagnosticViewModel)
+    : undefined, [giRenderModel, diagnosticViewModel]);
   useEffect(() => { if (!giRenderModel) setDiagnosticSubview('diagnosis'); }, [giRenderModel]);
 
   const loadLegacy = (value: unknown, fileName: string) => {
@@ -102,7 +106,7 @@ export default function App() {
     </section>}
     {mode === 'diagnostic' && giRenderModel && <nav className="diagnostic-subviews" aria-label="Vista de Diagnostic Output"><button type="button" className={diagnosticSubview === 'diagnosis' ? 'active' : ''} aria-pressed={diagnosticSubview === 'diagnosis'} onClick={() => setDiagnosticSubview('diagnosis')}>Diagnóstico</button><button type="button" className={diagnosticSubview === 'gi-structure' ? 'active' : ''} aria-pressed={diagnosticSubview === 'gi-structure'} onClick={() => setDiagnosticSubview('gi-structure')}>Mapa estructural G_I</button></nav>}
     {mode === 'legacy' ? <GraphRenderer model={legacyModel} /> : diagnosticSubview === 'gi-structure' && giRenderModel
-      ? <GiStructuralGraphRenderer model={giRenderModel} mismatch={gi.status === 'LOADED_MISMATCH'} />
+      ? <GiStructuralGraphRenderer model={giRenderModel} overlay={giOverlayResult?.status === 'COMPATIBLE' ? giOverlayResult.overlay : undefined} mismatch={giOverlayResult?.status === 'MISMATCH'} />
       : <DiagnosticGraphRenderer model={diagnosticModel} auxiliaryContext={auxiliaryContext} />}
   </>;
 }
