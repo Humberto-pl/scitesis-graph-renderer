@@ -30,7 +30,8 @@ G_I JSON
   → FULL_GI executable structural contract, or minimum auxiliary G_I reader
   → stored tagged profile
   → FULL_GI only: GiGraphViewModel
-  → [structural renderer not yet implemented]
+  → GiGraphRenderAdapter (render identities and authoritative LR/TB positions)
+  → GiStructuralGraphRenderer
   → compatibility classification
   → exact reference resolver
   → trace enrichment
@@ -58,6 +59,8 @@ The import UI routes by the role selected by the user. `JsonFileInput` only read
 - `DiagnosticGraphRenderAdapter`: renderer-only identities and display projection; no diagnostic derivation.
 - `DiagnosticGraphRenderer`: display and selection.
 - `GiGraphViewModel`: pure structural projection of a validated `FULL_GI`; no diagnosis or presentation.
+- `GiGraphRenderAdapter`: the sole G_I layout authority; relayout changes node positions only.
+- `GiStructuralGraphRenderer`: consumes adapter positions and exposes structural selection, focus, filters, and literal metadata inspection.
 - Auxiliary resolver: exact, case-sensitive reference resolution without reinterpretation.
 - Legacy loader/ViewModel/`GraphRenderer`: preserved independent compatibility pipeline.
 
@@ -96,13 +99,13 @@ These IDs must not be read back as diagnostic conclusions. Canonical IDs and fie
 
 ## G_I structural contract and auxiliary boundaries
 
-The executable full G_I contract validates materialized entities, relations, and, when present, inference steps and premise groups. It preserves compatible extensions and checks only declared shape, unique IDs, and internal references. It does not add relations, reconstruct topology, or assess methodological or diagnostic correctness. This PR exposes that contract without claiming that the renderer already supports a complete structural map.
+The executable full G_I contract validates materialized entities, relations, and, when present, inference steps and premise groups. It preserves compatible extensions and checks only declared shape, unique IDs, and internal references. It does not add relations, reconstruct topology, or assess methodological or diagnostic correctness. The structural renderer displays only materialized entities and relations as topology; inference steps and premise groups remain inspectable metadata.
 
-The application G_I slot stores an explicit `FULL_GI` or `MINIMAL_AUXILIARY_GI` profile. Full artifacts retain their structural collections and compatible extensions; a read-only adapter exposes the same object's `entities` to exact reference resolution. The presence of `relations`, `inference_steps`, or `premise_groups` marks a full G_I attempt: failure of the full contract then fails the load, without fallback. Minimum artifacts remain auxiliary-only and never acquire missing structural collections. Only `FULL_GI` is eligible for a future `GiGraphViewModel`. The fallback is confined to marker-free artifacts in the explicitly selected G_I role and is not general artifact autodetection.
+The application G_I slot stores an explicit `FULL_GI` or `MINIMAL_AUXILIARY_GI` profile. Full artifacts retain their structural collections and compatible extensions; a read-only adapter exposes the same object's `entities` to exact reference resolution. The presence of `relations`, `inference_steps`, or `premise_groups` marks a full G_I attempt: failure of the full contract then fails the load, without fallback. Minimum artifacts remain auxiliary-only and never acquire missing structural collections. Only `FULL_GI` is eligible for `GiGraphViewModel` and structural rendering. The fallback is confined to marker-free artifacts in the explicitly selected G_I role and is not general artifact autodetection.
 
-G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. A future map will be built from materialized full G_I structure and annotated by Diagnostic Output, not inferred or repaired by the renderer.
+G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. The current map presents materialized full G_I structure without a diagnostic overlay; any future annotation must come from Diagnostic Output, not be inferred or repaired by the renderer.
 
-`GiGraphViewModel` is a deterministic, presentation-neutral projection available only for `FULL_GI`. Its nodes and edges correspond 1:1, in input order, to materialized entities and relations. It retains materialized inference steps, premise groups, and structural metadata separately; absent optional collections become empty view-model collections only for consumption convenience. It neither reconstructs relations nor turns inference steps or premise groups into nodes or edges. It performs no layout and contains no diagnostic state. Its renderer remains intentionally unimplemented.
+`GiGraphViewModel` is a deterministic, presentation-neutral projection available only for `FULL_GI`. Its nodes and edges correspond 1:1, in input order, to materialized entities and relations. It retains materialized inference steps, premise groups, and structural metadata separately; absent optional collections become empty view-model collections only for consumption convenience. It neither reconstructs relations nor turns inference steps or premise groups into nodes or edges. It performs no layout and contains no diagnostic state. Layout belongs exclusively to `GiGraphRenderAdapter` and its pure relayout helper; the renderer consumes the resulting positions without recalculating them.
 
 `MINIMAL_AUXILIARY_GI` remains auxiliary-only and cannot feed this structural ViewModel. The ViewModel uses cloned projection records (including compatible entity, relation, and root extensions) rather than treating presentation data as canonical authority, and creates no topology indexes. Relations retain only their canonical `source_id` and `target_id` endpoints; rendering aliases belong in a future render adapter. Compatible extensions, including producer fields named `source` or `target`, are preserved without reinterpretation or replacement.
 
@@ -110,7 +113,7 @@ There is still no complete executable G_D schema. Its current reader accepts onl
 
 ## Known limits and future work
 
-- an authoritative executable G_D schema and structural G_I rendering;
+- an authoritative executable G_D schema and a future diagnostic overlay over structural G_I rendering;
 - dedicated compatibility-maximums presentation;
 - richer layout (including broader claim/inference placement needs), without changing topology;
 - production packaging and operational hardening;

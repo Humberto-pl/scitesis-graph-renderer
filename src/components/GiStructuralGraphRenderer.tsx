@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from 'react';
 import { Background, Controls, MarkerType, MiniMap, ReactFlow, type Edge, type Node } from '@xyflow/react';
 import type { GiGraphEntity, GiGraphRelation, GiInferenceStep, GiPremiseGroup } from '../diagnostic/auxiliary/giGraphContract';
-import type { GiGraphRenderModel } from '../graph/giGraphRenderAdapter';
+import { layoutGiRenderModel, type GiGraphRenderModel } from '../graph/giGraphRenderAdapter';
 
 type Selection = { kind: 'node' | 'edge'; id: string };
 type Direction = 'both' | 'incoming' | 'outgoing';
@@ -18,7 +18,10 @@ function RecordFields({ record, names }: { record: Record<string, unknown>; name
 const participates = (step: GiInferenceStep, id: string) => step.conclusion_id === id || ['premise_ids', 'warrant_assertion_ids', 'backing_ids', 'assumption_ids'].some(key => (step[key] as string[]).includes(id));
 
 function InferenceMetadata({ steps, groups }: { steps: readonly GiInferenceStep[]; groups: readonly GiPremiseGroup[] }) {
-  return <>{steps.map(step => <section className="gi-metadata-record" key={step.id}><h3>Inference step · {step.id}</h3><RecordFields record={step} names={['premise_ids', 'warrant_assertion_ids', 'backing_ids', 'assumption_ids', 'conclusion_id', 'premise_group_ids', 'review_state', 'provenance']} />{groups.filter(group => step.premise_group_ids.includes(group.id)).map(group => <section key={group.id} className="premise-group"><b>Premise group · {group.id}</b><RecordFields record={group} names={['mode', 'member_ids', 'target_inference_step_id', 'review_state', 'provenance', 'origin', 'version', 'iam_source']} /></section>)}</section>)}</>;
+  const shownGroupIds = new Set(steps.flatMap(step => step.premise_group_ids));
+  const relatedGroups = groups.filter(group => !shownGroupIds.has(group.id));
+  const group = (value: GiPremiseGroup) => <section key={value.id} className="premise-group"><b>Premise group · {value.id}</b><RecordFields record={value} names={['id', 'mode', 'member_ids', 'target_inference_step_id', 'review_state', 'provenance', 'origin', 'version', 'iam_source']} /></section>;
+  return <>{steps.map(step => <section className="gi-metadata-record" key={step.id}><h3>Inference step · {step.id}</h3><RecordFields record={step} names={['premise_ids', 'warrant_assertion_ids', 'backing_ids', 'assumption_ids', 'conclusion_id', 'premise_group_ids', 'review_state', 'provenance']} />{groups.filter(value => step.premise_group_ids.includes(value.id)).map(group)}</section>)}{relatedGroups.length > 0 && <section className="gi-metadata-record"><h3>Premise groups relacionados</h3>{relatedGroups.map(group)}</section>}</>;
 }
 
 function Inspector({ entity, relation, model }: { entity?: GiGraphEntity; relation?: GiGraphRelation; model: GiGraphRenderModel }) {
@@ -37,19 +40,20 @@ export function GiStructuralGraphRenderer({ model, mismatch = false }: { model: 
   const relationTypes = useMemo(() => [...new Set(model.edges.map(edge => edge.canonicalType))], [model]);
   const [hiddenEntityTypes, setHiddenEntityTypes] = useState<Set<string>>(new Set());
   const [hiddenRelationTypes, setHiddenRelationTypes] = useState<Set<string>>(new Set());
+  const laidOutModel = useMemo(() => layoutGiRenderModel(model, layoutDirection), [model, layoutDirection]);
   const focusedIds = useMemo(() => {
     if (!focus || selection?.kind !== 'node') return undefined;
     const ids = new Set([selection.id]);
-    model.edges.forEach(edge => {
+    laidOutModel.edges.forEach(edge => {
       if ((direction === 'both' || direction === 'outgoing') && edge.source === selection.id) ids.add(edge.target);
       if ((direction === 'both' || direction === 'incoming') && edge.target === selection.id) ids.add(edge.source);
     });
     return ids;
-  }, [focus, selection, model.edges, direction]);
-  const visibleNodes = model.nodes.filter(node => !hiddenEntityTypes.has(node.canonicalType) && (!focusedIds || focusedIds.has(node.id)));
+  }, [focus, selection, laidOutModel.edges, direction]);
+  const visibleNodes = laidOutModel.nodes.filter(node => !hiddenEntityTypes.has(node.canonicalType) && (!focusedIds || focusedIds.has(node.id)));
   const visibleIds = new Set(visibleNodes.map(node => node.id));
-  const visibleEdges = model.edges.filter(edge => !hiddenRelationTypes.has(edge.canonicalType) && visibleIds.has(edge.source) && visibleIds.has(edge.target));
-  const nodes: Node[] = visibleNodes.map(node => ({ id: node.id, position: layoutDirection === 'LR' ? node.position : { x: node.position.y * 2, y: node.position.x / 2 }, data: { label: <div className="gi-node-content"><strong>{showCodes ? `${node.canonicalType} · ` : ''}{node.entity.canonical_name ?? node.canonicalType}</strong><span>{node.label}</span></div> }, className: 'gi-structural-node' }));
+  const visibleEdges = laidOutModel.edges.filter(edge => !hiddenRelationTypes.has(edge.canonicalType) && visibleIds.has(edge.source) && visibleIds.has(edge.target));
+  const nodes: Node[] = visibleNodes.map(node => ({ id: node.id, position: node.position, data: { label: <div className="gi-node-content"><strong>{showCodes ? `${node.canonicalType} · ` : ''}{node.entity.canonical_name ?? node.canonicalType}</strong><span>{node.label}</span></div> }, className: 'gi-structural-node' }));
   const edges: Edge[] = visibleEdges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: showCodes ? `${edge.canonicalType} · ${edge.relation.canonical_name ?? ''}` : edge.relation.canonical_name ?? edge.canonicalType, markerEnd: { type: MarkerType.ArrowClosed }, className: 'gi-structural-edge' }));
   const selectedNode = selection?.kind === 'node' ? model.nodes.find(node => node.id === selection.id)?.entity : undefined;
   const selectedEdge = selection?.kind === 'edge' ? model.edges.find(edge => edge.id === selection.id)?.relation : undefined;

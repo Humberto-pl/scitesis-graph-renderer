@@ -31,22 +31,25 @@ export interface GiGraphRenderModel {
 
 export interface GiGraphRenderOptions { readonly direction?: GiLayoutDirection }
 
+interface LayoutNode { readonly id: string }
+interface LayoutEdge { readonly source: string; readonly target: string }
+
 /** Deterministic, topology-preserving layout over the materialized relations. */
-function positions(viewModel: GiGraphViewModel, direction: GiLayoutDirection): Map<string, { x: number; y: number }> {
-  const ids = new Set(viewModel.nodes.map(node => node.id));
-  const rank = new Map(viewModel.nodes.map(node => [node.id, 0]));
+function positions(nodes: readonly LayoutNode[], edges: readonly LayoutEdge[], direction: GiLayoutDirection): Map<string, { x: number; y: number }> {
+  const ids = new Set(nodes.map(node => node.id));
+  const rank = new Map(nodes.map(node => [node.id, 0]));
   // A bounded relaxation gives DAGs useful ranks and remains deterministic for cycles.
-  for (let pass = 0; pass < viewModel.nodes.length; pass += 1) {
+  for (let pass = 0; pass < nodes.length; pass += 1) {
     let changed = false;
-    for (const edge of viewModel.edges) {
-      if (!ids.has(edge.source_id) || !ids.has(edge.target_id)) continue;
-      const candidate = Math.min((rank.get(edge.source_id) ?? 0) + 1, viewModel.nodes.length - 1);
-      if (candidate > (rank.get(edge.target_id) ?? 0)) { rank.set(edge.target_id, candidate); changed = true; }
+    for (const edge of edges) {
+      if (!ids.has(edge.source) || !ids.has(edge.target)) continue;
+      const candidate = Math.min((rank.get(edge.source) ?? 0) + 1, nodes.length - 1);
+      if (candidate > (rank.get(edge.target) ?? 0)) { rank.set(edge.target, candidate); changed = true; }
     }
     if (!changed) break;
   }
   const row = new Map<number, number>();
-  return new Map(viewModel.nodes.map(node => {
+  return new Map(nodes.map(node => {
     const level = rank.get(node.id) ?? 0;
     const index = row.get(level) ?? 0;
     row.set(level, index + 1);
@@ -59,7 +62,15 @@ function positions(viewModel: GiGraphViewModel, direction: GiLayoutDirection): M
  * structural objects and metadata remain available verbatim for inspection.
  */
 export function adaptGiGraphForRender(viewModel: GiGraphViewModel, options: GiGraphRenderOptions = {}): GiGraphRenderModel {
-  const layout = positions(viewModel, options.direction ?? 'LR');
+  const renderEdges = viewModel.edges.map(relation => ({
+    id: relation.id,
+    canonicalId: relation.id,
+    canonicalType: relation.canonical_type,
+    source: relation.source_id,
+    target: relation.target_id,
+    relation,
+  }));
+  const layout = positions(viewModel.nodes, renderEdges, options.direction ?? 'LR');
   return {
     graphId: viewModel.graphId,
     graphRef: viewModel.graphRef,
@@ -72,14 +83,16 @@ export function adaptGiGraphForRender(viewModel: GiGraphViewModel, options: GiGr
       position: layout.get(entity.id)!,
       entity,
     })),
-    edges: viewModel.edges.map(relation => ({
-      id: relation.id,
-      canonicalId: relation.id,
-      canonicalType: relation.canonical_type,
-      source: relation.source_id,
-      target: relation.target_id,
-      relation,
-    })),
+    edges: renderEdges,
     metadata: viewModel.metadata,
+  };
+}
+
+/** Returns the same render projection with only deterministic positions replaced. */
+export function layoutGiRenderModel(model: GiGraphRenderModel, direction: GiLayoutDirection): GiGraphRenderModel {
+  const layout = positions(model.nodes, model.edges, direction);
+  return {
+    ...model,
+    nodes: model.nodes.map(node => ({ ...node, position: layout.get(node.id)! })),
   };
 }
