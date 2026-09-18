@@ -35,6 +35,7 @@ G_I JSON
 
 DiagnosticGraphViewModel + GiGraphRenderAdapter output
   → GiDiagnosticOverlayModel (exact-ID node annotations only)
+  → GiDiagnosticConnectorModel (exact materialized references only)
   → GiStructuralGraphRenderer
   → compatibility classification
   → exact reference resolver
@@ -65,6 +66,7 @@ The import UI routes by the role selected by the user. `JsonFileInput` only read
 - `GiGraphViewModel`: pure structural projection of a validated `FULL_GI`; no diagnosis or presentation.
 - `GiGraphRenderAdapter`: the sole G_I layout authority; relayout changes node positions only.
 - `GiDiagnosticOverlayModel`: pure, fail-closed association of diagnostic records to existing G_I nodes by exact, case-sensitive ID.
+- `GiDiagnosticConnectorModel`: pure renderer-only projection of resolvable breakpoint and downstream references, kept separate from G_I edges.
 - `GiStructuralGraphRenderer`: consumes adapter positions and an optional prepared overlay; it exposes structural selection, focus, filters, literal metadata inspection, and an explicit diagnostic toggle.
 - Auxiliary resolver: exact, case-sensitive reference resolution without reinterpretation.
 - Legacy loader/ViewModel/`GraphRenderer`: preserved independent compatibility pipeline.
@@ -113,6 +115,12 @@ G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole vis
 G_I remains the sole authority for nodes, edges, endpoints, layout, focus, and structural filters. The optional overlay does not create, remove, hide, restyle, or diagnose edges and does not create nodes. Its ON/OFF toggle changes annotations only. Materialized H_e transitions may appear as literal inspector records when one of their three ID fields exactly matches the selected node, but they are never projected onto G_I relations or converted into React Flow edges.
 
 The structural diagnostic overlay projects PR6 records literally and case-sensitively: a breakpoint origin only when `breakpoint_step_id === node.canonicalId`, its target separately only when `affected_transition_target_id === node.canonicalId`, and a downstream effect only when `target_claim_id === node.canonicalId`. Frontier membership means only that the exact node ID occurs in `member_claim_ids`; it is never inferred from `Def_e`, H_e, downstream state, or compatibility maximums. Multiple records and input order are preserved, while unresolved step, target, downstream, and frontier references remain explicit in coverage. An empty frontier remains visible, including `REVIEW_REQUIRED`, and `frontier_cardinality` is displayed exactly as materialized rather than recalculated from the member array. None of these projections creates a G_I or diagnostic edge, reconstructs propagation, or changes focus/layout/topology. Compatibility maximums remain separate and unprojected.
+
+Diagnostic connectors are a separate final-presentation collection; `GiGraphRenderModel.edges` continues to contain only `G_I.relations`. A `BREAKPOINT_ASSOCIATION` is the literal `breakpoint_step_id → affected_transition_target_id` reference and exists only when both exact, case-sensitive node IDs exist. A `DOWNSTREAM_REFERENCE` requires an exact `failure_ref → breakpoint_id` match to exactly one breakpoint, takes its source only from that breakpoint's `breakpoint_step_id`, and takes its target only from `target_claim_id`. Zero matches and ambiguous duplicate matches remain explicit unresolved attempts; no breakpoint is chosen arbitrarily.
+
+Connector IDs (`diag:breakpoint:<input-index>:<escaped-id>` and `diag:downstream:<input-index>:<escaped-failure-ref>:<escaped-target-id>`) are deterministic renderer-only identities and are never evidence or written back to artifacts. Self-references are retained explicitly. Connectors are overlaid only when both endpoints are already visible and both diagnostic toggles are on. They do not participate in structural filters, structural edge counts, layout, or focus, and they never establish a propagation or causal path. H_e transitions, frontier members, and compatibility maximums generate no connectors.
+
+Canonical G_I relation IDs and diagnostic connector technical IDs remain unchanged in their separate domains. ReactFlow receives a third, exclusively presentational identity (`rf:structural:<encoded-id>` or `rf:diagnostic:<encoded-id>`) plus explicit discriminated edge metadata; click handling never parses an ID or prefix. Hiding a connector through either diagnostic toggle, structural filters, or focus also hides its inspector, while leaving the connector model unchanged so the selection may reappear when visibility is restored.
 
 The structural inspector retains the PR36 presentation policy of omitting both `undefined` and `null` fields. The separate diagnostic inspector omits `undefined` but displays materialized `null`, because nullability can be canonical diagnostic content.
 

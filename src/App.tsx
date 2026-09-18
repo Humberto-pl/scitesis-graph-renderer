@@ -11,6 +11,7 @@ import type { AuxiliaryArtifactState, GdArtifact, GiArtifact } from './diagnosti
 import { adaptDiagnosticGraphForRender } from './diagnostic/diagnosticGraphRenderAdapter';
 import { buildDiagnosticGraphViewModel } from './diagnostic/diagnosticGraphViewModel';
 import { buildGiDiagnosticOverlay } from './diagnostic/giDiagnosticOverlayModel';
+import { buildGiDiagnosticConnectorModel } from './diagnostic/giDiagnosticConnectorModel';
 import { DiagnosticOutputValidationError, loadDiagnosticOutput } from './diagnostic/diagnosticOutputLoader';
 import diagnosticFixture from './diagnostic/fixtures/diagnostic-output-v0.1.2-viewmodel-rich.json';
 import type { DiagnosticOutput } from './diagnostic/types';
@@ -62,6 +63,9 @@ export default function App() {
   const giOverlayResult = useMemo(() => giRenderModel
     ? buildGiDiagnosticOverlay(giRenderModel, diagnosticViewModel)
     : undefined, [giRenderModel, diagnosticViewModel]);
+  const giConnectorModel = useMemo(() => giRenderModel && giOverlayResult?.status === 'COMPATIBLE'
+    ? buildGiDiagnosticConnectorModel(giRenderModel, giOverlayResult.overlay)
+    : undefined, [giRenderModel, giOverlayResult]);
   useEffect(() => { if (!giRenderModel) setDiagnosticSubview('diagnosis'); }, [giRenderModel]);
 
   const loadLegacy = (value: unknown, fileName: string) => {
@@ -106,7 +110,7 @@ export default function App() {
     </section>}
     {mode === 'diagnostic' && giRenderModel && <nav className="diagnostic-subviews" aria-label="Vista de Diagnostic Output"><button type="button" className={diagnosticSubview === 'diagnosis' ? 'active' : ''} aria-pressed={diagnosticSubview === 'diagnosis'} onClick={() => setDiagnosticSubview('diagnosis')}>Diagnóstico</button><button type="button" className={diagnosticSubview === 'gi-structure' ? 'active' : ''} aria-pressed={diagnosticSubview === 'gi-structure'} onClick={() => setDiagnosticSubview('gi-structure')}>Mapa estructural G_I</button></nav>}
     {mode === 'legacy' ? <GraphRenderer model={legacyModel} /> : diagnosticSubview === 'gi-structure' && giRenderModel
-      ? <>{giOverlayResult?.status === 'AMBIGUOUS_DIAGNOSTIC_IDS' && <aside className="gi-note" role="alert">Overlay diagnóstico no disponible: Diagnostic Output contiene IDs diagnósticos duplicados.<details><summary>IDs duplicados</summary><div>Claims: {JSON.stringify(giOverlayResult.duplicateClaimIds)}<br />Inference steps: {JSON.stringify(giOverlayResult.duplicateInferenceStepIds)}</div></details></aside>}<GiStructuralGraphRenderer model={giRenderModel} overlay={giOverlayResult?.status === 'COMPATIBLE' ? giOverlayResult.overlay : undefined} mismatch={giOverlayResult?.status === 'MISMATCH'} /></>
+      ? <>{giOverlayResult?.status === 'AMBIGUOUS_DIAGNOSTIC_IDS' && <aside className="gi-note" role="alert">Overlay diagnóstico no disponible: Diagnostic Output contiene IDs diagnósticos duplicados.<details><summary>IDs duplicados</summary><div>Claims: {JSON.stringify(giOverlayResult.duplicateClaimIds)}<br />Inference steps: {JSON.stringify(giOverlayResult.duplicateInferenceStepIds)}</div></details></aside>}<GiStructuralGraphRenderer model={giRenderModel} overlay={giOverlayResult?.status === 'COMPATIBLE' ? giOverlayResult.overlay : undefined} connectorModel={giConnectorModel} mismatch={giOverlayResult?.status === 'MISMATCH'} /></>
       : <DiagnosticGraphRenderer model={diagnosticModel} auxiliaryContext={auxiliaryContext} />}
   </>;
 }
