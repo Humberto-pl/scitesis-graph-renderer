@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AuxiliaryArtifactLoader, type AuxiliaryImportError } from './components/AuxiliaryArtifactLoader';
 import { DiagnosticGraphRenderer } from './components/DiagnosticGraphRenderer';
 import { GraphRenderer } from './components/GraphRenderer';
+import { GiStructuralGraphRenderer } from './components/GiStructuralGraphRenderer';
 import { PrimaryArtifactLoader, type PrimaryArtifactKind, type PrimaryImportError } from './components/PrimaryArtifactLoader';
 import { classifyGd, classifyGi, createAuxiliaryContext, notLoaded } from './diagnostic/auxiliary/context';
 import { loadGdArtifact } from './diagnostic/auxiliary/gdLoader';
@@ -14,10 +15,13 @@ import diagnosticFixture from './diagnostic/fixtures/diagnostic-output-v0.1.2-vi
 import type { DiagnosticOutput } from './diagnostic/types';
 import qualis from './fixtures/simulator-v0.3/QUALIS/confirmed_simulated_graph.json';
 import { buildCanonicalSimulatorGraphViewModel } from './graph/canonicalSimulatorAdapter';
+import { adaptGiGraphForRender } from './graph/giGraphRenderAdapter';
+import { buildGiGraphViewModel } from './graph/giGraphViewModel';
 import type { ConfirmedSimulatedGraphArtifact } from './graph/types';
 import { loadCanonicalArtifact } from './import/canonicalArtifactLoader';
 
 type PrimaryMode = 'legacy' | 'diagnostic';
+type DiagnosticSubview = 'diagnosis' | 'gi-structure';
 type MainSlot<T> = { artifact: T; fileName: string; source: 'DEMO' | 'FILE'; error?: PrimaryImportError };
 type AuxiliarySlot<T> = { artifact?: T; fileName?: string; error?: AuxiliaryImportError };
 
@@ -43,6 +47,7 @@ export default function App() {
   const [diagnostic, setDiagnostic] = useState<MainSlot<DiagnosticOutput>>({ artifact: diagnosticDemo, fileName: 'Diagnostic Output · Demo incluida', source: 'DEMO' });
   const [giSlot, setGiSlot] = useState<AuxiliarySlot<LoadedGiArtifact>>({});
   const [gdSlot, setGdSlot] = useState<AuxiliarySlot<GdArtifact>>({});
+  const [diagnosticSubview, setDiagnosticSubview] = useState<DiagnosticSubview>('diagnosis');
 
   const legacyModel = useMemo(() => buildCanonicalSimulatorGraphViewModel(legacy.artifact), [legacy.artifact]);
   const diagnosticViewModel = useMemo(() => buildDiagnosticGraphViewModel(diagnostic.artifact), [diagnostic.artifact]);
@@ -50,6 +55,10 @@ export default function App() {
   const gi = useMemo(() => giSlot.artifact ? classifyGi(giArtifactForAuxiliary(giSlot.artifact), diagnosticViewModel.metadata.run_metadata, giSlot.fileName) : notLoaded<GiArtifact>(), [giSlot.artifact, giSlot.fileName, diagnosticViewModel]);
   const gd = useMemo(() => gdSlot.artifact ? classifyGd(gdSlot.artifact, diagnosticViewModel.metadata.run_metadata, gdSlot.fileName) : notLoaded<GdArtifact>(), [gdSlot.artifact, gdSlot.fileName, diagnosticViewModel]);
   const auxiliaryContext = useMemo(() => createAuxiliaryContext(gi, gd), [gi, gd]);
+  const giRenderModel = useMemo(() => giSlot.artifact?.profile === 'FULL_GI'
+    ? adaptGiGraphForRender(buildGiGraphViewModel(giSlot.artifact.artifact))
+    : undefined, [giSlot.artifact]);
+  useEffect(() => { if (!giRenderModel) setDiagnosticSubview('diagnosis'); }, [giRenderModel]);
 
   const loadLegacy = (value: unknown, fileName: string) => {
     const result = loadCanonicalArtifact(value);
@@ -91,6 +100,9 @@ export default function App() {
       <div><AuxiliaryArtifactLoader kind="GD" onJson={loadGd} onParseError={error => setGdSlot(current => ({ ...current, error }))} error={gdSlot.error} /><ArtifactStatus label="G_D" state={gd} error={gdSlot.error} remove={() => setGdSlot({})} /></div>
       <small>Contexto auxiliar local; no modifica Diagnostic Output. G_D origin: {metadata.diagnostic_graph_origin}</small>
     </section>}
-    {mode === 'legacy' ? <GraphRenderer model={legacyModel} /> : <DiagnosticGraphRenderer model={diagnosticModel} auxiliaryContext={auxiliaryContext} />}
+    {mode === 'diagnostic' && giRenderModel && <nav className="diagnostic-subviews" aria-label="Vista de Diagnostic Output"><button type="button" className={diagnosticSubview === 'diagnosis' ? 'active' : ''} aria-pressed={diagnosticSubview === 'diagnosis'} onClick={() => setDiagnosticSubview('diagnosis')}>Diagnóstico</button><button type="button" className={diagnosticSubview === 'gi-structure' ? 'active' : ''} aria-pressed={diagnosticSubview === 'gi-structure'} onClick={() => setDiagnosticSubview('gi-structure')}>Mapa estructural G_I</button></nav>}
+    {mode === 'legacy' ? <GraphRenderer model={legacyModel} /> : diagnosticSubview === 'gi-structure' && giRenderModel
+      ? <GiStructuralGraphRenderer model={giRenderModel} mismatch={gi.status === 'LOADED_MISMATCH'} />
+      : <DiagnosticGraphRenderer model={diagnosticModel} auxiliaryContext={auxiliaryContext} />}
   </>;
 }
