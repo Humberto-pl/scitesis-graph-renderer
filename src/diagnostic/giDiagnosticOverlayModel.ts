@@ -1,6 +1,9 @@
 import type { GiGraphRenderModel } from '../graph/giGraphRenderAdapter';
 import type {
   DiagnosticClaimView,
+  DiagnosticBreakpointView,
+  DiagnosticDownstreamEffectView,
+  DiagnosticFrontierView,
   DiagnosticGraphViewModel,
   DiagnosticInferenceStepView,
   DiagnosticReviewRequiredView,
@@ -14,6 +17,10 @@ export interface GiNodeDiagnosticAnnotation {
   readonly reviewItems: readonly DiagnosticReviewRequiredView[];
   /** Literal H_e records for inspection only; these never become graph edges. */
   readonly viableTransitions: readonly DiagnosticTransitionView[];
+  readonly breakpointOrigins: readonly DiagnosticBreakpointView[];
+  readonly breakpointTargets: readonly DiagnosticBreakpointView[];
+  readonly downstreamEffects: readonly DiagnosticDownstreamEffectView[];
+  readonly isFrontierMember: boolean;
 }
 
 export interface GiDiagnosticOverlayModel {
@@ -23,6 +30,13 @@ export interface GiDiagnosticOverlayModel {
   readonly unmatchedClaimIds: readonly string[];
   readonly unmatchedInferenceStepIds: readonly string[];
   readonly unmatchedReviewItemIds: readonly string[];
+  readonly frontier: DiagnosticFrontierView;
+  /** Complete materialized collection, retained for exact reference resolution only. */
+  readonly breakpoints: readonly DiagnosticBreakpointView[];
+  readonly unmatchedBreakpointStepIds: readonly string[];
+  readonly unmatchedBreakpointTargetIds: readonly string[];
+  readonly unmatchedDownstreamEffects: readonly DiagnosticDownstreamEffectView[];
+  readonly unmatchedFrontierMemberIds: readonly string[];
 }
 
 export type GiDiagnosticOverlayResult =
@@ -93,13 +107,21 @@ export function buildGiDiagnosticOverlay(
       transition.source_claim_or_input_id === node.canonicalId
       || transition.inference_step_id === node.canonicalId
       || transition.target_claim_id === node.canonicalId);
-    if (claim || inferenceStep || reviewItems.length > 0 || viableTransitions.length > 0) {
+    const breakpointOrigins = diagnosticModel.breakpoints.filter(item => item.breakpoint_step_id === node.canonicalId);
+    const breakpointTargets = diagnosticModel.breakpoints.filter(item => item.affected_transition_target_id === node.canonicalId);
+    const downstreamEffects = diagnosticModel.downstreamEffects.filter(item => item.target_claim_id === node.canonicalId);
+    const isFrontierMember = diagnosticModel.frontier.member_claim_ids.includes(node.canonicalId);
+    if (claim || inferenceStep || reviewItems.length > 0 || viableTransitions.length > 0 || breakpointOrigins.length > 0 || breakpointTargets.length > 0 || downstreamEffects.length > 0 || isFrontierMember) {
       annotationsByNodeId.set(node.canonicalId, {
         nodeId: node.canonicalId,
         claim: claim === undefined ? undefined : structuredClone(claim),
         inferenceStep: inferenceStep === undefined ? undefined : structuredClone(inferenceStep),
         reviewItems: structuredClone(reviewItems),
         viableTransitions: structuredClone(viableTransitions),
+        breakpointOrigins: structuredClone(breakpointOrigins),
+        breakpointTargets: structuredClone(breakpointTargets),
+        downstreamEffects: structuredClone(downstreamEffects),
+        isFrontierMember,
       });
     }
   }
@@ -113,6 +135,12 @@ export function buildGiDiagnosticOverlay(
       unmatchedClaimIds: diagnosticModel.claims.filter(claim => !nodeIds.has(claim.claim_id)).map(claim => claim.claim_id),
       unmatchedInferenceStepIds: diagnosticModel.inferenceSteps.filter(step => !nodeIds.has(step.inference_step_id)).map(step => step.inference_step_id),
       unmatchedReviewItemIds: diagnosticModel.reviewRequiredItems.filter(item => !nodeIds.has(item.subject_ref)).map(item => item.item_id),
+      frontier: structuredClone(diagnosticModel.frontier),
+      breakpoints: structuredClone(diagnosticModel.breakpoints),
+      unmatchedBreakpointStepIds: diagnosticModel.breakpoints.filter(item => !nodeIds.has(item.breakpoint_step_id)).map(item => item.breakpoint_step_id),
+      unmatchedBreakpointTargetIds: diagnosticModel.breakpoints.filter(item => !nodeIds.has(item.affected_transition_target_id)).map(item => item.affected_transition_target_id),
+      unmatchedDownstreamEffects: structuredClone(diagnosticModel.downstreamEffects.filter(item => !nodeIds.has(item.target_claim_id))),
+      unmatchedFrontierMemberIds: diagnosticModel.frontier.member_claim_ids.filter(id => !nodeIds.has(id)),
     },
   };
 }

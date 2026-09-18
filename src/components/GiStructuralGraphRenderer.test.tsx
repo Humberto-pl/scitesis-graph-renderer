@@ -26,6 +26,11 @@ function modelWithOverlay() {
   diagnostic.inferenceSteps[0].inference_step_id = 'I1';
   diagnostic.reviewRequiredItems[0].subject_ref = 'C1';
   diagnostic.transitions[0].target_claim_id = 'C1';
+  diagnostic.breakpoints[0].breakpoint_step_id = 'I1';
+  diagnostic.breakpoints[0].affected_transition_target_id = 'C1';
+  diagnostic.downstreamEffects[0].target_claim_id = 'C1';
+  diagnostic.frontier.member_claim_ids = ['C1'];
+
   const result = buildGiDiagnosticOverlay(value, diagnostic);
   if (result.status !== 'COMPATIBLE') throw new Error('expected compatible overlay');
   return { value, overlay: result.overlay, diagnostic };
@@ -151,4 +156,37 @@ describe('GiStructuralGraphRenderer', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Enfocar nodo seleccionado' }));
     expect(screen.getByRole('status')).toHaveTextContent('2/4 nodos · 1/3 relaciones');
   });
+
+  it('shows literal breakpoint, downstream, and frontier annotations and hides them with the overlay', () => {
+    const { value, overlay } = modelWithOverlay();
+    render(<GiStructuralGraphRenderer model={value} overlay={overlay} />);
+    expect(screen.getByText('BREAKPOINT')).toBeInTheDocument();
+    expect(screen.getByText('Downstream: AFFECTED')).toBeInTheDocument();
+    expect(screen.getByText('FRONTIER')).toBeInTheDocument();
+    expect(screen.getByText(/Frontier: RESOLVED · cardinalidad materializada: 1/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar entidad C1' }));
+    const inspector = screen.getByRole('complementary');
+    expect(inspector).toHaveTextContent('Breakpoint target · breakpoint-1');
+    expect(inspector).toHaveTextContent('Downstream effect · AFFECTED');
+    expect(inspector).toHaveTextContent('Resuelve exactamente a breakpoint: breakpoint-1');
+    expect(inspector).toHaveTextContent('Miembro materializado de defendability frontier');
+    expect(screen.getAllByRole('button', { name: /Inspeccionar relación/ })).toHaveLength(value.edges.length);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    for (const text of ['BREAKPOINT', 'Downstream: AFFECTED', 'FRONTIER']) expect(screen.queryByText(text)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Frontier: RESOLVED/)).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Inspeccionar relación/ })).toHaveLength(value.edges.length);
+  });
+
+  it('keeps an empty REVIEW_REQUIRED frontier visible with its materialized cardinality', () => {
+    const values = modelWithOverlay();
+    values.diagnostic.frontier.member_claim_ids = [];
+    values.diagnostic.frontier.frontier_cardinality = 0;
+    values.diagnostic.frontier.frontier_status = 'REVIEW_REQUIRED';
+    const result = buildGiDiagnosticOverlay(values.value, values.diagnostic);
+    if (result.status !== 'COMPATIBLE') throw new Error('expected compatible overlay');
+    render(<GiStructuralGraphRenderer model={values.value} overlay={result.overlay} />);
+    expect(screen.getByText(/Frontier: REVIEW_REQUIRED · cardinalidad materializada: 0/)).toBeInTheDocument();
+    expect(screen.queryByText('FRONTIER')).not.toBeInTheDocument();
+  });
+
 });

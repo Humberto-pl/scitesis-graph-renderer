@@ -110,7 +110,9 @@ The application G_I slot stores an explicit `FULL_GI` or `MINIMAL_AUXILIARY_GI` 
 
 G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer never derives diagnosis from G_I. `GiDiagnosticOverlayModel` annotates existing structural nodes only when Diagnostic Output `graph_ref` and `graph_version` exactly equal the render model identity. A mismatch produces no overlay. Claims map only when `claim_id === canonicalId`, inference steps only when `inference_step_id === canonicalId`, and review items only when `subject_ref === canonicalId`; matching is case-sensitive, without normalization, aliases, or heuristics. Exact-ID matching must also be unambiguous: duplicate `claim_id` or `inference_step_id` values block the entire overlay explicitly, with no last-wins policy, while the structural map remains visible and unchanged. Unmatched diagnostic IDs remain explicit in overlay coverage, and absence of a diagnostic record does not mean `UNKNOWN`.
 
-G_I remains the sole authority for nodes, edges, endpoints, layout, focus, and structural filters. The optional overlay does not create, remove, hide, restyle, or diagnose edges and does not create nodes. Its ON/OFF toggle changes annotations only. Materialized H_e transitions may appear as literal inspector records when one of their three ID fields exactly matches the selected node, but they are never projected onto G_I relations or converted into React Flow edges. Breakpoints, downstream effects, frontier membership, propagation, and maximality remain exclusively in the independent diagnostic renderer and are intentionally not visualized on the structural map until PR6.
+G_I remains the sole authority for nodes, edges, endpoints, layout, focus, and structural filters. The optional overlay does not create, remove, hide, restyle, or diagnose edges and does not create nodes. Its ON/OFF toggle changes annotations only. Materialized H_e transitions may appear as literal inspector records when one of their three ID fields exactly matches the selected node, but they are never projected onto G_I relations or converted into React Flow edges.
+
+The structural diagnostic overlay projects PR6 records literally and case-sensitively: a breakpoint origin only when `breakpoint_step_id === node.canonicalId`, its target separately only when `affected_transition_target_id === node.canonicalId`, and a downstream effect only when `target_claim_id === node.canonicalId`. Frontier membership means only that the exact node ID occurs in `member_claim_ids`; it is never inferred from `Def_e`, H_e, downstream state, or compatibility maximums. Multiple records and input order are preserved, while unresolved step, target, downstream, and frontier references remain explicit in coverage. An empty frontier remains visible, including `REVIEW_REQUIRED`, and `frontier_cardinality` is displayed exactly as materialized rather than recalculated from the member array. None of these projections creates a G_I or diagnostic edge, reconstructs propagation, or changes focus/layout/topology. Compatibility maximums remain separate and unprojected.
 
 The structural inspector retains the PR36 presentation policy of omitting both `undefined` and `null` fields. The separate diagnostic inspector omits `undefined` but displays materialized `null`, because nullability can be canonical diagnostic content.
 
@@ -122,7 +124,8 @@ There is still no complete executable G_D schema. Its current reader accepts onl
 
 ## Known limits and future work
 
-- an authoritative executable G_D schema and PR6 projection of materialized breakpoints/downstream/frontier over structural G_I;
+- an authoritative executable G_D schema;
+- any future propagation connectors require a separate PR and may use only explicit materialized diagnostic references, never reconstructed paths;
 - dedicated compatibility-maximums presentation;
 - richer layout (including broader claim/inference placement needs), without changing topology;
 - production packaging and operational hardening;

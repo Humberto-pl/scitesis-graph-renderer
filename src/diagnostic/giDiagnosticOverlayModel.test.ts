@@ -20,6 +20,11 @@ function models() {
   diagnostic.reviewRequiredItems[0].subject_ref = 'C1';
   diagnostic.transitions[0].source_claim_or_input_id = 'C1';
   diagnostic.transitions[0].inference_step_id = 'I1';
+  diagnostic.breakpoints[0].breakpoint_step_id = 'I1';
+  diagnostic.breakpoints[0].affected_transition_target_id = 'C1';
+  diagnostic.downstreamEffects[0].target_claim_id = 'C1';
+  diagnostic.frontier.member_claim_ids = ['C1'];
+
   return { gi, diagnostic };
 }
 
@@ -134,4 +139,49 @@ describe('buildGiDiagnosticOverlay', () => {
     expect(gi.nodes).toEqual(giBefore.nodes);
     expect(gi.edges).toEqual(giBefore.edges);
   });
+
+  it('projects literal breakpoints independently at origin and target and reports either unmatched side', () => {
+    const { diagnostic } = models();
+    const duplicate = structuredClone(diagnostic.breakpoints[0]);
+    duplicate.breakpoint_id = diagnostic.breakpoints[0].breakpoint_id;
+    diagnostic.breakpoints.push(duplicate);
+    let result = compatible(diagnostic).overlay;
+    expect(result.annotationsByNodeId.get('I1')?.breakpointOrigins).toHaveLength(2);
+    expect(result.annotationsByNodeId.get('C1')?.breakpointTargets).toHaveLength(2);
+    diagnostic.breakpoints[0].affected_transition_target_id = 'missing-target';
+    diagnostic.breakpoints[1].breakpoint_step_id = 'missing-step';
+    result = compatible(diagnostic).overlay;
+    expect(result.annotationsByNodeId.get('I1')?.breakpointOrigins).toHaveLength(1);
+    expect(result.annotationsByNodeId.get('C1')?.breakpointTargets).toHaveLength(1);
+    expect(result.unmatchedBreakpointStepIds).toEqual(['missing-step']);
+    expect(result.unmatchedBreakpointTargetIds).toEqual(['missing-target']);
+  });
+
+  it('preserves every downstream state in input order and reports complete unmatched records', () => {
+    const { diagnostic } = models();
+    diagnostic.downstreamEffects = ['AFFECTED', 'NOT_AFFECTED', 'UNKNOWN'].map(affected_state => ({ ...structuredClone(diagnostic.downstreamEffects[0]), affected_state } as typeof diagnostic.downstreamEffects[number]));
+    diagnostic.downstreamEffects.push({ ...structuredClone(diagnostic.downstreamEffects[0]), target_claim_id: 'missing' });
+    const { overlay } = compatible(diagnostic);
+    expect(overlay.annotationsByNodeId.get('C1')?.downstreamEffects.map(value => value.affected_state)).toEqual(['AFFECTED', 'NOT_AFFECTED', 'UNKNOWN']);
+    expect(overlay.unmatchedDownstreamEffects).toEqual([diagnostic.downstreamEffects[3]]);
+    expect(overlay.breakpoints).toEqual(diagnostic.breakpoints);
+    expect(overlay.annotationsByNodeId.get('C1')?.claim?.def_e_value).toBe(diagnostic.claims[0].def_e_value);
+  });
+
+  it('uses only exact frontier membership, preserves an empty frontier, and never recalculates cardinality', () => {
+    const { diagnostic } = models();
+    diagnostic.frontier.member_claim_ids = ['C1', 'c1', 'missing', 'C1'];
+    diagnostic.frontier.frontier_cardinality = 99;
+    let overlay = compatible(diagnostic).overlay;
+    expect(overlay.annotationsByNodeId.get('C1')?.isFrontierMember).toBe(true);
+    expect(overlay.unmatchedFrontierMemberIds).toEqual(['c1', 'missing']);
+    expect(overlay.frontier.frontier_cardinality).toBe(99);
+    diagnostic.frontier.member_claim_ids = [];
+    diagnostic.frontier.frontier_cardinality = 0;
+    diagnostic.frontier.frontier_status = 'REVIEW_REQUIRED';
+    overlay = compatible(diagnostic).overlay;
+    expect(overlay.frontier).toMatchObject({ member_claim_ids: [], frontier_cardinality: 0, frontier_status: 'REVIEW_REQUIRED' });
+    expect([...overlay.annotationsByNodeId.values()].some(value => value.isFrontierMember)).toBe(false);
+  });
+
 });
