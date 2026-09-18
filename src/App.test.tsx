@@ -347,3 +347,25 @@ describe('App artifact import integration', () => {
     expect(screen.getByText('ID: C1')).toBeInTheDocument();
   });
 });
+
+it('imports the integration-rich pair and fail-closes then restores overlay state on version mismatch', async () => {
+  const richGi = (await import('./diagnostic/fixtures/integration-rich/gi-full-integration-rich.json')).default;
+  const richDiagnostic = (await import('./diagnostic/fixtures/integration-rich/diagnostic-output-v0.1.2-integration-rich.json')).default;
+  render(<App />);
+  fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
+  fireEvent.change(screen.getByLabelText('Cargar Diagnostic Output'), { target: { files: [artifactFile(richDiagnostic, 'integration-rich-diagnostic.json')] } });
+  fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(richGi, 'integration-rich-gi.json')] } });
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Mapa estructural G_I' })).toBeInTheDocument());
+  fireEvent.click(screen.getByRole('button', { name: 'Mapa estructural G_I' }));
+  expect(screen.getByText(/Overlay diagnóstico exact-ID disponible/)).toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('30/30 nodos · 36/36 relaciones · 4 conectores diagnósticos visibles');
+  const mismatch = structuredClone(richDiagnostic);
+  mismatch.run_metadata.graph_version = '2.0';
+  fireEvent.change(screen.getByLabelText('Cargar Diagnostic Output'), { target: { files: [artifactFile(mismatch, 'integration-rich-mismatch.json')] } });
+  await waitFor(() => expect(screen.queryByRole('checkbox', { name: 'Mostrar diagnóstico' })).not.toBeInTheDocument());
+  expect(screen.getByTestId('gi-structural-graph-canvas')).toBeInTheDocument();
+  expect(screen.queryAllByRole('button', { name: /Inspeccionar conector diagnóstico/ })).toHaveLength(0);
+  fireEvent.change(screen.getByLabelText('Cargar Diagnostic Output'), { target: { files: [artifactFile(richDiagnostic, 'integration-rich-compatible-again.json')] } });
+  await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' })).toBeChecked());
+  expect(screen.getAllByRole('button', { name: /Inspeccionar conector diagnóstico/ })).toHaveLength(4);
+});

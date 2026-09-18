@@ -1,0 +1,939 @@
+{
+  "graph_ref": "integration-rich-g1",
+  "graph_version": "1.0",
+  "entities": [
+    {
+      "id": "P1",
+      "canonical_type": "premise",
+      "text": "Premisa sintética 1",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "canonical_type": "premise",
+      "text": "Premisa sintética 2",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "canonical_type": "premise",
+      "text": "Premisa sintética 3",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "canonical_type": "premise",
+      "text": "Premisa sintética 4",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "canonical_type": "premise",
+      "text": "Premisa sintética 5",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "canonical_type": "premise",
+      "text": "Premisa sintética 6",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "canonical_type": "premise",
+      "text": "Premisa sintética 7",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "canonical_type": "premise",
+      "text": "Premisa sintética 8",
+      "review_state": "pending",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "E1",
+      "canonical_type": "evidence",
+      "text": "Evidencia sintética 1",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "canonical_type": "evidence",
+      "text": "Evidencia sintética 2",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "canonical_type": "evidence",
+      "text": "Evidencia sintética 3",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "canonical_type": "evidence",
+      "text": "Evidencia sintética 4",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "W1",
+      "canonical_type": "warrant",
+      "text": "Garantía sintética 1"
+    },
+    {
+      "id": "W2",
+      "canonical_type": "warrant",
+      "text": "Garantía sintética 2"
+    },
+    {
+      "id": "A1",
+      "canonical_type": "assumption",
+      "text": "Supuesto sintético 1"
+    },
+    {
+      "id": "A2",
+      "canonical_type": "assumption",
+      "text": "Supuesto sintético 2"
+    },
+    {
+      "id": "I1",
+      "canonical_type": "inference_step_anchor",
+      "label": "Inferencia 1"
+    },
+    {
+      "id": "I2",
+      "canonical_type": "inference_step_anchor",
+      "label": "Inferencia 2"
+    },
+    {
+      "id": "I3",
+      "canonical_type": "inference_step_anchor",
+      "label": "Inferencia 3"
+    },
+    {
+      "id": "I4",
+      "canonical_type": "inference_step_anchor",
+      "label": "Inferencia 4"
+    },
+    {
+      "id": "I5",
+      "canonical_type": "inference_step_anchor",
+      "label": "Inferencia 5"
+    },
+    {
+      "id": "I6",
+      "canonical_type": "inference_step_anchor",
+      "label": "Inferencia 6"
+    },
+    {
+      "id": "I7",
+      "canonical_type": "inference_step_anchor",
+      "label": "Inferencia 7"
+    },
+    {
+      "id": "I8",
+      "canonical_type": "inference_step_anchor",
+      "label": "Inferencia 8"
+    },
+    {
+      "id": "C1",
+      "canonical_type": "claim",
+      "text": "Claim sintético 1"
+    },
+    {
+      "id": "C2",
+      "canonical_type": "claim",
+      "text": "Claim sintético 2"
+    },
+    {
+      "id": "C3",
+      "canonical_type": "claim",
+      "text": "Claim sintético 3"
+    },
+    {
+      "id": "C4",
+      "canonical_type": "claim",
+      "text": "Claim sintético 4"
+    },
+    {
+      "id": "C5",
+      "canonical_type": "claim",
+      "text": "Claim sintético 5"
+    },
+    {
+      "id": "C6",
+      "canonical_type": "claim",
+      "text": "Claim sintético 6"
+    }
+  ],
+  "relations": [
+    {
+      "id": "R1",
+      "canonical_type": "supports",
+      "source_id": "E1",
+      "target_id": "P1",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "canonical_type": "supports",
+      "source_id": "E2",
+      "target_id": "P2",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "canonical_type": "supports",
+      "source_id": "E3",
+      "target_id": "P3",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "canonical_type": "supports",
+      "source_id": "E4",
+      "target_id": "P4",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "canonical_type": "supports",
+      "source_id": "P1",
+      "target_id": "I1",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "canonical_type": "supports",
+      "source_id": "P2",
+      "target_id": "I1",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "canonical_type": "warrants",
+      "source_id": "W1",
+      "target_id": "I1",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "canonical_type": "concludes",
+      "source_id": "I1",
+      "target_id": "C1",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "canonical_type": "supports",
+      "source_id": "P3",
+      "target_id": "I2",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "canonical_type": "assumes",
+      "source_id": "A1",
+      "target_id": "I2",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "canonical_type": "concludes",
+      "source_id": "I2",
+      "target_id": "C2",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "canonical_type": "supports",
+      "source_id": "C1",
+      "target_id": "I3",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "canonical_type": "supports",
+      "source_id": "C2",
+      "target_id": "I3",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "canonical_type": "supports",
+      "source_id": "P4",
+      "target_id": "I3",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "canonical_type": "concludes",
+      "source_id": "I3",
+      "target_id": "C3",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "canonical_type": "supports",
+      "source_id": "P5",
+      "target_id": "I4",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "canonical_type": "supports",
+      "source_id": "P6",
+      "target_id": "I4",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "canonical_type": "warrants",
+      "source_id": "W2",
+      "target_id": "I4",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R19",
+      "canonical_type": "concludes",
+      "source_id": "I4",
+      "target_id": "C4",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R20",
+      "canonical_type": "supports",
+      "source_id": "C3",
+      "target_id": "I5",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "canonical_type": "supports",
+      "source_id": "C4",
+      "target_id": "I5",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R22",
+      "canonical_type": "assumes",
+      "source_id": "A2",
+      "target_id": "I5",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R23",
+      "canonical_type": "concludes",
+      "source_id": "I5",
+      "target_id": "C5",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R24",
+      "canonical_type": "supports",
+      "source_id": "P7",
+      "target_id": "I6",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R25",
+      "canonical_type": "supports",
+      "source_id": "C2",
+      "target_id": "I6",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R26",
+      "canonical_type": "concludes",
+      "source_id": "I6",
+      "target_id": "C5",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R27",
+      "canonical_type": "supports",
+      "source_id": "C5",
+      "target_id": "I7",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R28",
+      "canonical_type": "supports",
+      "source_id": "P8",
+      "target_id": "I7",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R29",
+      "canonical_type": "concludes",
+      "source_id": "I7",
+      "target_id": "C6",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R30",
+      "canonical_type": "supports",
+      "source_id": "C1",
+      "target_id": "I8",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R31",
+      "canonical_type": "supports",
+      "source_id": "C4",
+      "target_id": "I8",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R32",
+      "canonical_type": "concludes",
+      "source_id": "I8",
+      "target_id": "C6",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R33",
+      "canonical_type": "contextualizes",
+      "source_id": "E1",
+      "target_id": "I2",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R34",
+      "canonical_type": "contextualizes",
+      "source_id": "E2",
+      "target_id": "I4",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R35",
+      "canonical_type": "supports",
+      "source_id": "P3",
+      "target_id": "I6",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    },
+    {
+      "id": "R36",
+      "canonical_type": "supports",
+      "source_id": "P6",
+      "target_id": "I8",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture"
+        }
+      ]
+    }
+  ],
+  "premise_groups": [
+    {
+      "id": "PG1",
+      "mode": "linked",
+      "member_ids": [
+        "P1",
+        "P2"
+      ],
+      "target_inference_step_id": "I1",
+      "review_state": "reviewed",
+      "provenance": [],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "PG2",
+      "mode": "convergent",
+      "member_ids": [
+        "C1",
+        "C2",
+        "P4"
+      ],
+      "target_inference_step_id": "I3",
+      "review_state": "reviewed",
+      "provenance": [],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "PG3",
+      "mode": "linked",
+      "member_ids": [
+        "P5",
+        "P6"
+      ],
+      "target_inference_step_id": "I4",
+      "review_state": "reviewed",
+      "provenance": [],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "PG4",
+      "mode": "convergent",
+      "member_ids": [
+        "C5",
+        "P8"
+      ],
+      "target_inference_step_id": "I7",
+      "review_state": "pending",
+      "provenance": [],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    }
+  ],
+  "inference_steps": [
+    {
+      "id": "I1",
+      "canonical_type": "inference",
+      "premise_ids": [
+        "P1",
+        "P2"
+      ],
+      "premise_group_ids": [
+        "PG1"
+      ],
+      "assumption_ids": [],
+      "warrant_assertion_ids": [
+        "W1"
+      ],
+      "backing_ids": [],
+      "conclusion_id": "C1",
+      "explicitness": "explicit",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture",
+          "record": 1
+        }
+      ],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "I2",
+      "canonical_type": "inference",
+      "premise_ids": [
+        "P3"
+      ],
+      "premise_group_ids": [],
+      "assumption_ids": [
+        "A1"
+      ],
+      "warrant_assertion_ids": [],
+      "backing_ids": [
+        "E1"
+      ],
+      "conclusion_id": "C2",
+      "explicitness": "implicit",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture",
+          "record": 2
+        }
+      ],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "I3",
+      "canonical_type": "inference",
+      "premise_ids": [
+        "C1",
+        "C2",
+        "P4"
+      ],
+      "premise_group_ids": [
+        "PG2"
+      ],
+      "assumption_ids": [],
+      "warrant_assertion_ids": [],
+      "backing_ids": [],
+      "conclusion_id": "C3",
+      "explicitness": "explicit",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture",
+          "record": 3
+        }
+      ],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "I4",
+      "canonical_type": "inference",
+      "premise_ids": [
+        "P5",
+        "P6"
+      ],
+      "premise_group_ids": [
+        "PG3"
+      ],
+      "assumption_ids": [],
+      "warrant_assertion_ids": [
+        "W2"
+      ],
+      "backing_ids": [
+        "E2"
+      ],
+      "conclusion_id": "C4",
+      "explicitness": "implicit",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture",
+          "record": 4
+        }
+      ],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "I5",
+      "canonical_type": "inference",
+      "premise_ids": [
+        "C3",
+        "C4"
+      ],
+      "premise_group_ids": [],
+      "assumption_ids": [
+        "A2"
+      ],
+      "warrant_assertion_ids": [],
+      "backing_ids": [],
+      "conclusion_id": "C5",
+      "explicitness": "explicit",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture",
+          "record": 5
+        }
+      ],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "I6",
+      "canonical_type": "inference",
+      "premise_ids": [
+        "P7",
+        "C2"
+      ],
+      "premise_group_ids": [],
+      "assumption_ids": [],
+      "warrant_assertion_ids": [],
+      "backing_ids": [
+        "P3"
+      ],
+      "conclusion_id": "C5",
+      "explicitness": "implicit",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture",
+          "record": 6
+        }
+      ],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "I7",
+      "canonical_type": "inference",
+      "premise_ids": [
+        "C5",
+        "P8"
+      ],
+      "premise_group_ids": [
+        "PG4"
+      ],
+      "assumption_ids": [],
+      "warrant_assertion_ids": [],
+      "backing_ids": [],
+      "conclusion_id": "C6",
+      "explicitness": "explicit",
+      "review_state": "pending",
+      "provenance": [
+        {
+          "source": "integration-fixture",
+          "record": 7
+        }
+      ],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    },
+    {
+      "id": "I8",
+      "canonical_type": "inference",
+      "premise_ids": [
+        "C1",
+        "C4"
+      ],
+      "premise_group_ids": [],
+      "assumption_ids": [],
+      "warrant_assertion_ids": [],
+      "backing_ids": [
+        "P6"
+      ],
+      "conclusion_id": "C6",
+      "explicitness": "implicit",
+      "review_state": "reviewed",
+      "provenance": [
+        {
+          "source": "integration-fixture",
+          "record": 8
+        }
+      ],
+      "origin": "integration-fixture",
+      "version": 1,
+      "iam_source": null
+    }
+  ],
+  "metadata": {
+    "classification": "TEST / INTEGRATION FIXTURE",
+    "synthetic": true
+  }
+}

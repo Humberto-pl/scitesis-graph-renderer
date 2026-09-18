@@ -130,13 +130,19 @@ The structural inspector retains the PR36 presentation policy of omitting both `
 
 There is still no complete executable G_D schema. Its current reader accepts only the documented snapshot identity plus `entities[]` fields needed for inspection; other data remains opaque.
 
+## Integration-rich acceptance fixture
+
+The `integration-rich` pair is an explicitly synthetic **TEST / INTEGRATION FIXTURE** that exercises the complete existing FULL_GI → ViewModel → render adapter and Diagnostic Output → overlay → connector composition pipeline. It is a regression oracle for preservation, exact-ID projection, unresolved references, renderer interactions, and non-mutation; it is not an empirical corpus, a real thesis, evidence of diagnostic quality, a PDF/IAM interpretation test, or a production-readiness test. Its expected counts are documented beside the artifacts.
+
 ## Known limits and future work
 
-- an authoritative executable G_D schema;
+- a FULL_GI and compatible Diagnostic Output derived from a real thesis remain untested;
+- the real experimental corpus still needs expansion;
+- G_D still lacks a complete executable schema;
 - any future propagation connectors require a separate PR and may use only explicit materialized diagnostic references, never reconstructed paths;
 - dedicated compatibility-maximums presentation;
-- richer layout (including broader claim/inference placement needs), without changing topology;
-- production packaging and operational hardening;
+- rich-graph layout may require later work (including broader claim/inference placement needs), without changing topology;
+- production packaging and operational hardening remain pending;
 - expansion beyond the experimental PILOT-R01 acceptance corpus.
 
 No item above is implemented implicitly in v0.2.
