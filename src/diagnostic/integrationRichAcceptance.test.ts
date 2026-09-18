@@ -72,6 +72,44 @@ describe('integration-rich acceptance pipeline', () => {
     expect(first.diagnostic.transitions).toHaveLength(4);
   });
 
+  it('does not mutate the preceding value while constructing each pipeline stage', () => {
+    const giInput = structuredClone(giJson);
+    const giInputBefore = structuredClone(giInput);
+    const loadedGi = loadGiGraphContract(giInput);
+    expect(giInput).toEqual(giInputBefore);
+    if (!loadedGi.ok) throw new Error(loadedGi.error.details.join('\n'));
+
+    const loadedArtifactBefore = structuredClone(loadedGi.artifact);
+    const giView = buildGiGraphViewModel(loadedGi.artifact);
+    expect(loadedGi.artifact).toEqual(loadedArtifactBefore);
+
+    const giViewBefore = structuredClone(giView);
+    const render = adaptGiGraphForRender(giView);
+    expect(giView).toEqual(giViewBefore);
+
+    const diagnosticInput = structuredClone(diagnosticJson);
+    const diagnosticInputBefore = structuredClone(diagnosticInput);
+    const output = loadDiagnosticOutput(diagnosticInput);
+    expect(diagnosticInput).toEqual(diagnosticInputBefore);
+
+    const outputBefore = structuredClone(output);
+    const diagnostic = buildDiagnosticGraphViewModel(output);
+    expect(output).toEqual(outputBefore);
+
+    const renderBeforeOverlay = structuredClone(render);
+    const diagnosticBeforeOverlay = structuredClone(diagnostic);
+    const result = buildGiDiagnosticOverlay(render, diagnostic);
+    expect(render).toEqual(renderBeforeOverlay);
+    expect(diagnostic).toEqual(diagnosticBeforeOverlay);
+    if (result.status !== 'COMPATIBLE') throw new Error(result.status);
+
+    const renderBeforeConnectors = structuredClone(render);
+    const overlayBeforeConnectors = structuredClone(result.overlay);
+    buildGiDiagnosticConnectorModel(render, result.overlay);
+    expect(render).toEqual(renderBeforeConnectors);
+    expect(result.overlay).toEqual(overlayBeforeConnectors);
+  });
+
   it('preserves an explicitly empty REVIEW_REQUIRED frontier without recalculating it', () => {
     const variant = structuredClone(diagnosticJson);
     variant.defendability_frontier.member_claim_ids = [];

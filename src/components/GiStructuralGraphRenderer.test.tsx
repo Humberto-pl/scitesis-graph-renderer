@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import fixture from '../diagnostic/auxiliary/fixtures/gi-full-valid.json';
 import { loadGiGraphContract } from '../diagnostic/auxiliary/giGraphContract';
 import diagnosticFixture from '../diagnostic/fixtures/diagnostic-output-v0.1.2-viewmodel-rich.json';
+import richGiFixture from '../diagnostic/fixtures/integration-rich/gi-full-integration-rich.json';
+import richDiagnosticFixture from '../diagnostic/fixtures/integration-rich/diagnostic-output-v0.1.2-integration-rich.json';
 import { buildDiagnosticGraphViewModel } from '../diagnostic/diagnosticGraphViewModel';
 import { loadDiagnosticOutput } from '../diagnostic/diagnosticOutputLoader';
 import { buildGiDiagnosticOverlay } from '../diagnostic/giDiagnosticOverlayModel';
@@ -300,18 +302,23 @@ describe('GiStructuralGraphRenderer', () => {
 
 // Integration-rich acceptance intentionally uses the real loader chain rather than hand-built models.
 describe('GiStructuralGraphRenderer integration-rich acceptance', () => {
-  it('renders rich structural and diagnostic collections while toggles remain topology-neutral', async () => {
-    const giJson = (await import('../diagnostic/fixtures/integration-rich/gi-full-integration-rich.json')).default;
-    const diagnosticJson = (await import('../diagnostic/fixtures/integration-rich/diagnostic-output-v0.1.2-integration-rich.json')).default;
-    const loaded = loadGiGraphContract(structuredClone(giJson));
+  const richModel = () => {
+    const loaded = loadGiGraphContract(structuredClone(richGiFixture));
     if (!loaded.ok) throw new Error(loaded.error.details.join('\n'));
     const value = adaptGiGraphForRender(buildGiGraphViewModel(loaded.artifact));
-    const diagnostic = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(diagnosticJson)));
+    const diagnostic = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(richDiagnosticFixture)));
     const result = buildGiDiagnosticOverlay(value, diagnostic);
     if (result.status !== 'COMPATIBLE') throw new Error(result.status);
     const connectorModel = buildGiDiagnosticConnectorModel(value, result.overlay);
+    return { value, overlay: result.overlay, connectorModel };
+  };
+  const visibleNodeIds = (container: HTMLElement) => new Set([...container.querySelectorAll<HTMLElement>('.react-flow__node[data-id]')].map(node => node.dataset.id!));
+  const positions = (container: HTMLElement, ids: readonly string[]) => Object.fromEntries(ids.map(id => [id, container.querySelector<HTMLElement>(`.react-flow__node[data-id="${id}"]`)?.style.transform]));
+
+  it('renders rich structural and diagnostic collections while toggles remain topology-neutral', () => {
+    const { value, overlay, connectorModel } = richModel();
     const connectorBefore = structuredClone(connectorModel);
-    const { container } = render(<GiStructuralGraphRenderer model={value} overlay={result.overlay} connectorModel={connectorModel} />);
+    const { container } = render(<GiStructuralGraphRenderer model={value} overlay={overlay} connectorModel={connectorModel} />);
     expect(screen.getAllByRole('button', { name: /Inspeccionar entidad/ })).toHaveLength(30);
     expect(screen.getAllByRole('button', { name: /Inspeccionar relación/ })).toHaveLength(36);
     expect(screen.getAllByRole('button', { name: /Inspeccionar conector diagnóstico/ })).toHaveLength(4);
@@ -327,5 +334,89 @@ describe('GiStructuralGraphRenderer integration-rich acceptance', () => {
     expect(screen.getAllByRole('button', { name: /Inspeccionar relación/ })).toHaveLength(36);
     expect(container.querySelector<HTMLElement>('.react-flow__node[data-id="C1"]')?.style.transform).toBe(beforePosition);
     expect(connectorModel).toEqual(connectorBefore);
+  });
+
+  it('filters rich structural endpoints without recalculating diagnostic connectors', () => {
+    const { value, overlay, connectorModel } = richModel();
+    const valueBefore = structuredClone(value);
+    const connectorBefore = structuredClone(connectorModel);
+    const visibleWithoutClaims = new Set(value.nodes.filter(node => node.canonicalType !== 'claim').map(node => node.id));
+    const expectedEdges = value.edges.filter(edge => visibleWithoutClaims.has(edge.source) && visibleWithoutClaims.has(edge.target));
+    const expectedConnectors = connectorModel.connectors.filter(connector => visibleWithoutClaims.has(connector.source) && visibleWithoutClaims.has(connector.target));
+    const { container } = render(<GiStructuralGraphRenderer model={value} overlay={overlay} connectorModel={connectorModel} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('30/30 nodos · 36/36 relaciones · 4 conectores diagnósticos visibles');
+    fireEvent.click(screen.getByText('Filtros estructurales'));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'claim' }));
+    expect(visibleNodeIds(container)).toEqual(visibleWithoutClaims);
+    expect(screen.getByRole('status')).toHaveTextContent(`${visibleWithoutClaims.size}/30 nodos · ${expectedEdges.length}/36 relaciones · ${expectedConnectors.length} conectores diagnósticos visibles`);
+    expect(screen.queryAllByRole('button', { name: /Inspeccionar conector diagnóstico/ })).toHaveLength(expectedConnectors.length);
+    expect(connectorModel).toEqual(connectorBefore);
+    expect(value).toEqual(valueBefore);
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'claim' }));
+    expect(visibleNodeIds(container)).toEqual(new Set(value.nodes.map(node => node.id)));
+    expect(screen.getByRole('status')).toHaveTextContent('30/30 nodos · 36/36 relaciones · 4 conectores diagnósticos visibles');
+    expect(screen.getAllByRole('button', { name: /Inspeccionar conector diagnóstico/ })).toHaveLength(4);
+    expect(connectorModel).toEqual(connectorBefore);
+  });
+
+  it('derives outgoing, incoming, and both focus neighborhoods only from rich G_I edges', () => {
+    const { value, overlay, connectorModel } = richModel();
+    // I1 has three incoming structural neighbors, one outgoing neighbor, and several diagnostic-only targets.
+    const anchor = 'I1';
+    const expected = (direction: 'outgoing' | 'incoming' | 'both') => new Set([
+      anchor,
+      ...value.edges.flatMap(edge => direction !== 'incoming' && edge.source === anchor ? [edge.target] : []),
+      ...value.edges.flatMap(edge => direction !== 'outgoing' && edge.target === anchor ? [edge.source] : []),
+    ]);
+    const expectedConnectorCount = (ids: ReadonlySet<string>) => connectorModel.connectors.filter(connector => ids.has(connector.source) && ids.has(connector.target)).length;
+    const connectorBefore = structuredClone(connectorModel);
+    const positionsBefore = value.nodes.map(node => node.position);
+    const { container } = render(<GiStructuralGraphRenderer model={value} overlay={overlay} connectorModel={connectorModel} />);
+    fireEvent.click(screen.getByRole('button', { name: `Inspeccionar entidad ${anchor}` }));
+
+    for (const direction of ['outgoing', 'incoming', 'both'] as const) {
+      fireEvent.change(screen.getByRole('combobox', { name: 'Dirección focus' }), { target: { value: direction } });
+      if (direction === 'outgoing') fireEvent.click(screen.getByRole('button', { name: 'Enfocar nodo seleccionado' }));
+      const ids = expected(direction);
+      const edgeCount = value.edges.filter(edge => ids.has(edge.source) && ids.has(edge.target)).length;
+      expect(visibleNodeIds(container)).toEqual(ids);
+      expect(screen.getByRole('status')).toHaveTextContent(`${ids.size}/30 nodos · ${edgeCount}/36 relaciones · ${expectedConnectorCount(ids)} conectores diagnósticos visibles`);
+    }
+
+    expect(connectorModel).toEqual(connectorBefore);
+    expect(value.nodes.map(node => node.position)).toEqual(positionsBefore);
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar focus' }));
+    expect(visibleNodeIds(container)).toEqual(new Set(value.nodes.map(node => node.id)));
+    expect(screen.getByRole('status')).toHaveTextContent('30/30 nodos · 36/36 relaciones · 4 conectores diagnósticos visibles');
+  });
+
+  it('keeps rich LR/TB layout deterministic and independent from overlay and connector visibility', () => {
+    const sample = ['C1', 'C3', 'C6', 'I1', 'I7'];
+    const { value, overlay, connectorModel } = richModel();
+    const first = render(<GiStructuralGraphRenderer model={value} overlay={overlay} connectorModel={connectorModel} />);
+    const lr = positions(first.container, sample);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar conectores diagnósticos' }));
+    expect(positions(first.container, sample)).toEqual(lr);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    expect(positions(first.container, sample)).toEqual(lr);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar conectores diagnósticos' }));
+    expect(positions(first.container, sample)).toEqual(lr);
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Layout' }), { target: { value: 'TB' } });
+    const tb = positions(first.container, sample);
+    expect(sample.some(id => tb[id] !== lr[id])).toBe(true);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar conectores diagnósticos' }));
+    expect(positions(first.container, sample)).toEqual(tb);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    expect(positions(first.container, sample)).toEqual(tb);
+    first.unmount();
+
+    const secondModel = richModel();
+    const second = render(<GiStructuralGraphRenderer model={secondModel.value} overlay={secondModel.overlay} connectorModel={secondModel.connectorModel} />);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Layout' }), { target: { value: 'TB' } });
+    expect(positions(second.container, sample)).toEqual(tb);
   });
 });
