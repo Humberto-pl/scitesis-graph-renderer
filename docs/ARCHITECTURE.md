@@ -25,11 +25,18 @@ Diagnostic Output JSON
   → DiagnosticGraphRenderAdapter
   → DiagnosticGraphRenderer
 
-G_I / G_D
-  → auxiliary loaders
+G_I JSON
+  → full G_I loader
+  → executable structural contract
+  → stored validated full G_I
   → compatibility classification
   → exact reference resolver
   → trace enrichment
+
+G_D JSON
+  → auxiliary loader
+  → compatibility classification
+  → exact reference resolver
 
 Legacy JSON
   → legacy loader
@@ -88,7 +95,9 @@ These IDs must not be read back as diagnostic conclusions. Canonical IDs and fie
 
 The executable full G_I contract validates materialized entities, relations, and, when present, inference steps and premise groups. It preserves compatible extensions and checks only declared shape, unique IDs, and internal references. It does not add relations, reconstruct topology, or assess methodological or diagnostic correctness. This PR exposes that contract without claiming that the renderer already supports a complete structural map.
 
-The existing minimum G_I reader remains the auxiliary path for exact Diagnostic Output reference resolution, while a validated full G_I is structurally compatible with that path through its `entities`. G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. A future map will be built from materialized G_I structure and annotated by Diagnostic Output, not inferred or repaired by the renderer.
+The application file flow stores the complete validated G_I, including its structural collections and compatible extensions. A read-only adapter exposes that same object's `entities` to the existing minimum auxiliary boundary for exact Diagnostic Output reference resolution; it does not create a second G_I representation. G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. A future map will be built from materialized G_I structure and annotated by Diagnostic Output, not inferred or repaired by the renderer.
+
+There is still no `GiGraphViewModel`, structural G_I renderer, complete map, or diagnostic overlay. Loading G_I only makes validated structure available in memory for later work.
 
 There is still no complete executable G_D schema. Its current reader accepts only the documented snapshot identity plus `entities[]` fields needed for inspection; other data remains opaque.
 

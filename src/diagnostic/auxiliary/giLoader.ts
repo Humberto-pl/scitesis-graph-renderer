@@ -1,5 +1,16 @@
 import { readEntities, record, shapeError } from './loaderUtils';
+import { loadGiGraphContract, type GiGraphContract, type GiGraphContractResult } from './giGraphContract';
 import type { AuxiliaryLoadResult, GiArtifact } from './types';
+
+/** Full G_I file boundary used by the application import flow. */
+export function loadFullGiArtifact(input: unknown): GiGraphContractResult {
+  return loadGiGraphContract(input);
+}
+
+/** Read-only adaptation to the stabilized exact-reference boundary. */
+export function asGiAuxiliaryArtifact(artifact: GiGraphContract): GiArtifact {
+  return artifact;
+}
 
 /** Minimal read boundary; this is deliberately not a complete G_I schema. */
 export function loadGiArtifact(input: unknown): AuxiliaryLoadResult<GiArtifact> {

@@ -1,7 +1,8 @@
 import type { AuxiliaryArtifactKind, AuxiliaryLoadError } from '../diagnostic/auxiliary/types';
+import type { GiGraphContractError } from '../diagnostic/auxiliary/giGraphContract';
 import { JsonFileInput, type JsonFileError } from './JsonFileInput';
 
-export type AuxiliaryImportError = AuxiliaryLoadError | JsonFileError;
+export type AuxiliaryImportError = AuxiliaryLoadError | GiGraphContractError | JsonFileError;
 
 export function AuxiliaryArtifactLoader({ kind, onJson, onParseError, error }: {
   kind: AuxiliaryArtifactKind;
