@@ -221,4 +221,79 @@ describe('GiStructuralGraphRenderer', () => {
     expect(inspector).not.toHaveTextContent('RELACIÓN G_I');
   });
 
+  it('keeps ReactFlow structural and diagnostic identities disjoint during an exact domain-ID collision', () => {
+    const values = modelWithOverlay();
+    const collisionId = values.connectorModel.connectors[0].id;
+    const originalEdge = values.value.edges[0];
+    const collisionModel = {
+      ...values.value,
+      edges: [{ ...originalEdge, id: collisionId, canonicalId: collisionId, relation: { ...originalEdge.relation, id: collisionId } }, ...values.value.edges.slice(1)],
+    };
+    const { container } = render(<GiStructuralGraphRenderer model={collisionModel} overlay={values.overlay} connectorModel={values.connectorModel} />);
+    expect(collisionModel.edges[0].id).toBe(collisionId);
+    expect(values.connectorModel.connectors[0].id).toBe(collisionId);
+    const structuralFlowId = `rf:structural:${encodeURIComponent(collisionId)}`;
+    const diagnosticFlowId = `rf:diagnostic:${encodeURIComponent(collisionId)}`;
+    expect(structuralFlowId).not.toBe(diagnosticFlowId);
+    expect(container.querySelector(`[data-flow-edge-id="${structuralFlowId}"][data-edge-kind="STRUCTURAL"]`)).toBeInTheDocument();
+    expect(container.querySelector(`[data-flow-edge-id="${diagnosticFlowId}"][data-edge-kind="DIAGNOSTIC_CONNECTOR"]`)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('3/3 relaciones · 2 conectores diagnósticos visibles');
+    fireEvent.click(screen.getByRole('button', { name: `Inspeccionar relación ${collisionId}` }));
+    expect(screen.getByRole('complementary', { name: 'Inspector estructural G_I' })).toHaveTextContent('RELACIÓN G_I');
+    expect(screen.queryByText('CONECTOR DIAGNÓSTICO')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: `Inspeccionar conector diagnóstico ${collisionId}` }));
+    expect(screen.getByRole('complementary', { name: 'Inspector de conector diagnóstico' })).toHaveTextContent('CONECTOR DIAGNÓSTICO');
+  });
+
+  it('treats a diag-prefixed canonical relation as structural', () => {
+    const value = model();
+    const originalEdge = value.edges[0];
+    const canonicalId = 'diag:relation:17';
+    const variant = { ...value, edges: [{ ...originalEdge, id: canonicalId, canonicalId, relation: { ...originalEdge.relation, id: canonicalId } }, ...value.edges.slice(1)] };
+    render(<GiStructuralGraphRenderer model={variant} />);
+    fireEvent.click(screen.getByRole('button', { name: `Inspeccionar relación ${canonicalId}` }));
+    expect(screen.getByRole('complementary', { name: 'Inspector estructural G_I' })).toHaveTextContent('RELACIÓN G_I');
+    expect(screen.queryByText('CONECTOR DIAGNÓSTICO')).not.toBeInTheDocument();
+  });
+
+  it('shows a selected connector inspector only while the connector is visible through toggles and filters', () => {
+    const { value, overlay, connectorModel } = modelWithOverlay();
+    render(<GiStructuralGraphRenderer model={value} overlay={overlay} connectorModel={connectorModel} />);
+    const selectConnector = () => fireEvent.click(screen.getByRole('button', { name: /Inspeccionar conector diagnóstico diag:breakpoint/ }));
+    const inspector = () => screen.queryByRole('complementary', { name: 'Inspector de conector diagnóstico' });
+    selectConnector();
+    expect(inspector()).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar conectores diagnósticos' }));
+    expect(inspector()).not.toBeInTheDocument();
+    expect(screen.getByText('BREAKPOINT')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar conectores diagnósticos' }));
+    expect(inspector()).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Filtros estructurales'));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'inference_step_anchor' }));
+    expect(inspector()).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'inference_step_anchor' }));
+    expect(inspector()).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'conclusion' }));
+    expect(inspector()).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'conclusion' }));
+    expect(inspector()).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    expect(inspector()).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Inspeccionar relación/ })).toHaveLength(value.edges.length);
+  });
+
+  it('hides a selected connector inspector when structural focus hides an endpoint and restores it with visibility', () => {
+    const { value, overlay, connectorModel } = modelWithOverlay();
+    render(<GiStructuralGraphRenderer model={value} overlay={overlay} connectorModel={connectorModel} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar entidad I1' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Dirección focus' }), { target: { value: 'outgoing' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enfocar nodo seleccionado' }));
+    fireEvent.click(screen.getByRole('button', { name: /Inspeccionar conector diagnóstico diag:breakpoint/ }));
+    expect(screen.getByRole('complementary', { name: 'Inspector de conector diagnóstico' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Dirección focus' }), { target: { value: 'incoming' } });
+    expect(screen.queryByRole('complementary', { name: 'Inspector de conector diagnóstico' })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Dirección focus' }), { target: { value: 'outgoing' } });
+    expect(screen.getByRole('complementary', { name: 'Inspector de conector diagnóstico' })).toBeInTheDocument();
+  });
+
 });
