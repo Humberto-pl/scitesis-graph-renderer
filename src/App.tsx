@@ -106,7 +106,7 @@ export default function App() {
     </section>}
     {mode === 'diagnostic' && giRenderModel && <nav className="diagnostic-subviews" aria-label="Vista de Diagnostic Output"><button type="button" className={diagnosticSubview === 'diagnosis' ? 'active' : ''} aria-pressed={diagnosticSubview === 'diagnosis'} onClick={() => setDiagnosticSubview('diagnosis')}>Diagnóstico</button><button type="button" className={diagnosticSubview === 'gi-structure' ? 'active' : ''} aria-pressed={diagnosticSubview === 'gi-structure'} onClick={() => setDiagnosticSubview('gi-structure')}>Mapa estructural G_I</button></nav>}
     {mode === 'legacy' ? <GraphRenderer model={legacyModel} /> : diagnosticSubview === 'gi-structure' && giRenderModel
-      ? <GiStructuralGraphRenderer model={giRenderModel} overlay={giOverlayResult?.status === 'COMPATIBLE' ? giOverlayResult.overlay : undefined} mismatch={giOverlayResult?.status === 'MISMATCH'} />
+      ? <>{giOverlayResult?.status === 'AMBIGUOUS_DIAGNOSTIC_IDS' && <aside className="gi-note" role="alert">Overlay diagnóstico no disponible: Diagnostic Output contiene IDs diagnósticos duplicados.<details><summary>IDs duplicados</summary><div>Claims: {JSON.stringify(giOverlayResult.duplicateClaimIds)}<br />Inference steps: {JSON.stringify(giOverlayResult.duplicateInferenceStepIds)}</div></details></aside>}<GiStructuralGraphRenderer model={giRenderModel} overlay={giOverlayResult?.status === 'COMPATIBLE' ? giOverlayResult.overlay : undefined} mismatch={giOverlayResult?.status === 'MISMATCH'} /></>
       : <DiagnosticGraphRenderer model={diagnosticModel} auxiliaryContext={auxiliaryContext} />}
   </>;
 }

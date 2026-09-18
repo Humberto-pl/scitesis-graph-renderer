@@ -45,6 +45,47 @@ describe('buildGiDiagnosticOverlay', () => {
     expect('overlay' in versionMismatch).toBe(false);
   });
 
+  it('fails closed for duplicate claim IDs without choosing a record', () => {
+    const { gi, diagnostic } = models();
+    diagnostic.claims.push(structuredClone(diagnostic.claims[0]));
+    const before = structuredClone(diagnostic);
+    const result = buildGiDiagnosticOverlay(gi, diagnostic);
+    expect(result).toEqual({ status: 'AMBIGUOUS_DIAGNOSTIC_IDS', duplicateClaimIds: ['C1'], duplicateInferenceStepIds: [] });
+    expect('overlay' in result).toBe(false);
+    expect(diagnostic).toEqual(before);
+  });
+
+  it('fails closed for duplicate inference-step IDs without choosing a record', () => {
+    const { gi, diagnostic } = models();
+    diagnostic.inferenceSteps.push(structuredClone(diagnostic.inferenceSteps[0]));
+    const result = buildGiDiagnosticOverlay(gi, diagnostic);
+    expect(result).toEqual({ status: 'AMBIGUOUS_DIAGNOSTIC_IDS', duplicateClaimIds: [], duplicateInferenceStepIds: ['I1'] });
+    expect('overlay' in result).toBe(false);
+  });
+
+  it('reports simultaneous and tripled duplicates once in stable first-duplicate order', () => {
+    const { gi, diagnostic } = models();
+    diagnostic.claims.push(structuredClone(diagnostic.claims[0]), structuredClone(diagnostic.claims[0]));
+    diagnostic.inferenceSteps.push(structuredClone(diagnostic.inferenceSteps[0]));
+    const result = buildGiDiagnosticOverlay(gi, diagnostic);
+    expect(result).toEqual({ status: 'AMBIGUOUS_DIAGNOSTIC_IDS', duplicateClaimIds: ['C1'], duplicateInferenceStepIds: ['I1'] });
+  });
+
+  it('treats differently-cased IDs as distinct', () => {
+    const { gi, diagnostic } = models();
+    const claim = structuredClone(diagnostic.claims[0]);
+    claim.claim_id = 'c1';
+    diagnostic.claims.push(claim);
+    expect(buildGiDiagnosticOverlay(gi, diagnostic).status).toBe('COMPATIBLE');
+  });
+
+  it('returns identity mismatch before considering duplicate IDs', () => {
+    const { gi, diagnostic } = models();
+    diagnostic.claims.push(structuredClone(diagnostic.claims[0]));
+    diagnostic.metadata.run_metadata.graph_ref = 'other-graph';
+    expect(buildGiDiagnosticOverlay(gi, diagnostic).status).toBe('MISMATCH');
+  });
+
   it('maps claims, inference steps, reviews, and H_e only by exact IDs', () => {
     const { overlay } = compatible();
     expect(overlay.annotationsByNodeId.get('C1')?.claim?.claim_id).toBe('C1');

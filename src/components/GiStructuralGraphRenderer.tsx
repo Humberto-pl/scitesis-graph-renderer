@@ -8,15 +8,15 @@ type Selection = { kind: 'node' | 'edge'; id: string };
 type Direction = 'both' | 'incoming' | 'outgoing';
 
 const display = (value: unknown) => typeof value === 'string' ? value : JSON.stringify(value);
-const fields = (record: object, names: readonly string[]) => {
+const fields = (record: object, names: readonly string[], includeNull: boolean) => {
   const values = record as Record<string, unknown>;
-  return names.flatMap(name => values[name] === undefined ? [] : [{ name, value: values[name] }]);
+  return names.flatMap(name => values[name] === undefined || (!includeNull && values[name] === null) ? [] : [{ name, value: values[name] }]);
 };
 const entityFields = ['id', 'canonical_type', 'canonical_name', 'subtype', 'label', 'text', 'attributes', 'discourse_role', 'argumentative_role', 'epistemic_plane', 'explicitness', 'confidence', 'review_state', 'functional_relevance', 'projection_status', 'origin', 'version', 'iam_source', 'provenance'] as const;
 const relationFields = ['id', 'canonical_type', 'canonical_name', 'source_id', 'target_id', 'attributes', 'explicitness', 'confidence', 'review_state', 'projection_status', 'origin', 'version', 'iam_source', 'provenance'] as const;
 
-function RecordFields({ record, names }: { record: object; names: readonly string[] }) {
-  return <dl>{fields(record, names).map(field => <Fragment key={field.name}><dt>{field.name}</dt><dd>{display(field.value)}</dd></Fragment>)}</dl>;
+function RecordFields({ record, names, includeNull = false }: { record: object; names: readonly string[]; includeNull?: boolean }) {
+  return <dl>{fields(record, names, includeNull).map(field => <Fragment key={field.name}><dt>{field.name}</dt><dd>{display(field.value)}</dd></Fragment>)}</dl>;
 }
 
 const participates = (step: GiInferenceStep, id: string) => step.conclusion_id === id || ['premise_ids', 'warrant_assertion_ids', 'backing_ids', 'assumption_ids'].some(key => (step[key] as string[]).includes(id));
@@ -35,10 +35,10 @@ const transitionFields = ['source_claim_or_input_id', 'inference_step_id', 'targ
 
 function DiagnosticInspector({ annotation }: { annotation: GiNodeDiagnosticAnnotation }) {
   return <section className="gi-diagnostic-inspector" aria-label="Diagnóstico exacto del nodo"><h2>DIAGNÓSTICO</h2>
-    {annotation.claim && <section><h3>Claim · {annotation.claim.claim_id}</h3><RecordFields record={annotation.claim} names={claimDiagnosticFields} /></section>}
-    {annotation.inferenceStep && <section><h3>Inference step · {annotation.inferenceStep.inference_step_id}</h3><RecordFields record={annotation.inferenceStep} names={inferenceDiagnosticFields} /></section>}
-    {annotation.reviewItems.map(item => <section key={item.item_id}><h3>Review item · {item.item_id}</h3><RecordFields record={item} names={reviewFields} /></section>)}
-    {annotation.viableTransitions.map((transition, index) => <section key={`${transition.source_claim_or_input_id}:${transition.inference_step_id}:${transition.target_claim_id}:${index}`}><h3>H_e transition (registro literal)</h3><RecordFields record={transition} names={transitionFields} /></section>)}
+    {annotation.claim && <section><h3>Claim · {annotation.claim.claim_id}</h3><RecordFields record={annotation.claim} names={claimDiagnosticFields} includeNull /></section>}
+    {annotation.inferenceStep && <section><h3>Inference step · {annotation.inferenceStep.inference_step_id}</h3><RecordFields record={annotation.inferenceStep} names={inferenceDiagnosticFields} includeNull /></section>}
+    {annotation.reviewItems.map(item => <section key={item.item_id}><h3>Review item · {item.item_id}</h3><RecordFields record={item} names={reviewFields} includeNull /></section>)}
+    {annotation.viableTransitions.map((transition, index) => <section key={`${transition.source_claim_or_input_id}:${transition.inference_step_id}:${transition.target_claim_id}:${index}`}><h3>H_e transition (registro literal)</h3><RecordFields record={transition} names={transitionFields} includeNull /></section>)}
   </section>;
 }
 

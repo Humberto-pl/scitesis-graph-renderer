@@ -33,7 +33,23 @@ export type GiDiagnosticOverlayResult =
       readonly expectedGraphVersion: string;
       readonly actualGraphRef: string;
       readonly actualGraphVersion: string;
+    }
+  | {
+      readonly status: 'AMBIGUOUS_DIAGNOSTIC_IDS';
+      readonly duplicateClaimIds: readonly string[];
+      readonly duplicateInferenceStepIds: readonly string[];
     };
+
+const duplicateIds = (values: readonly string[]): string[] => {
+  const counts = new Map<string, number>();
+  values.forEach(value => counts.set(value, (counts.get(value) ?? 0) + 1));
+  const emitted = new Set<string>();
+  return values.filter(value => {
+    if ((counts.get(value) ?? 0) < 2 || emitted.has(value)) return false;
+    emitted.add(value);
+    return true;
+  });
+};
 
 /**
  * Associates materialized diagnosis with existing G_I nodes by exact,
@@ -51,6 +67,16 @@ export function buildGiDiagnosticOverlay(
       expectedGraphVersion: run.graph_version,
       actualGraphRef: giModel.graphRef,
       actualGraphVersion: giModel.graphVersion,
+    };
+  }
+
+  const duplicateClaimIds = duplicateIds(diagnosticModel.claims.map(claim => claim.claim_id));
+  const duplicateInferenceStepIds = duplicateIds(diagnosticModel.inferenceSteps.map(step => step.inference_step_id));
+  if (duplicateClaimIds.length > 0 || duplicateInferenceStepIds.length > 0) {
+    return {
+      status: 'AMBIGUOUS_DIAGNOSTIC_IDS',
+      duplicateClaimIds,
+      duplicateInferenceStepIds,
     };
   }
 

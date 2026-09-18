@@ -109,6 +109,30 @@ describe('App artifact import integration', () => {
     await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' })).toBeChecked());
   });
 
+  it('keeps the structural map visible but blocks an ambiguous diagnostic overlay until replaced', async () => {
+    const compatible = structuredClone(diagnostic);
+    compatible.run_metadata.graph_ref = giFixture.graph_ref;
+    compatible.run_metadata.graph_version = giFixture.graph_version;
+    compatible.claim_defendibility[0].claim_id = 'C1';
+    const ambiguous = structuredClone(compatible);
+    ambiguous.claim_defendibility.push(structuredClone(ambiguous.claim_defendibility[0]));
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Diagnostic Output' }));
+    fireEvent.change(screen.getByLabelText('Cargar Diagnostic Output'), { target: { files: [artifactFile(compatible, 'compatible-initial.json')] } });
+    fireEvent.change(screen.getByLabelText('Cargar G_I'), { target: { files: [artifactFile(giFixture, 'full-gi.json')] } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Mapa estructural G_I' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Mapa estructural G_I' }));
+    expect(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' })).toBeChecked();
+    fireEvent.change(screen.getByLabelText('Cargar Diagnostic Output'), { target: { files: [artifactFile(ambiguous, 'ambiguous.json')] } });
+    await waitFor(() => expect(screen.queryByRole('checkbox', { name: 'Mostrar diagnóstico' })).not.toBeInTheDocument());
+    expect(screen.getByTestId('gi-structural-graph-canvas')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Diagnostic Output contiene IDs diagnósticos duplicados');
+
+    fireEvent.change(screen.getByLabelText('Cargar Diagnostic Output'), { target: { files: [artifactFile(compatible, 'compatible.json')] } });
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' })).toBeChecked());
+    expect(screen.queryByText(/IDs diagnósticos duplicados/)).not.toBeInTheDocument();
+  });
+
   it('keeps the previous artifact visible after schema validation fails', async () => {
     render(<App />);
     expect(screen.getByText(/PRIMARY: Legacy · QUALIS · Demo incluida/)).toBeInTheDocument();

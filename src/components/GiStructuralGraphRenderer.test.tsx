@@ -114,6 +114,26 @@ describe('GiStructuralGraphRenderer', () => {
     expect(within(inspector).getByText('DIAGNÓSTICO')).toBeInTheDocument();
     expect(within(inspector).getByText(`Review item · ${diagnostic.reviewRequiredItems[0].item_id}`)).toBeInTheDocument();
     expect(within(inspector).getByText('H_e transition (registro literal)')).toBeInTheDocument();
+    const reformulation = within(inspector).getByText('maximum_defensible_reformulation');
+    expect(reformulation.nextElementSibling).toHaveTextContent('null');
+  });
+
+  it('omits structural null fields with the overlay off and on', () => {
+    const loaded = loadGiGraphContract({
+      ...structuredClone(fixture),
+      entities: structuredClone(fixture.entities).map(entity => entity.id === 'C1' ? { ...entity, subtype: null, discourse_role: null } : entity),
+    });
+    if (!loaded.ok) throw new Error(loaded.error.details.join('\n'));
+    const value = adaptGiGraphForRender(buildGiGraphViewModel(loaded.artifact));
+    const { overlay } = modelWithOverlay();
+    render(<GiStructuralGraphRenderer model={value} overlay={overlay} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Inspeccionar entidad C1' }));
+    expect(within(screen.getByRole('complementary')).queryByText('subtype')).not.toBeInTheDocument();
+    expect(within(screen.getByRole('complementary')).queryByText('discourse_role')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    expect(within(screen.getByRole('complementary')).queryByText('subtype')).not.toBeInTheDocument();
+    expect(within(screen.getByRole('complementary')).queryByText('discourse_role')).not.toBeInTheDocument();
   });
 
   it('turns annotations off without changing structural nodes, edges, focus, or layout', () => {
