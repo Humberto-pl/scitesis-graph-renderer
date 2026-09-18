@@ -14,10 +14,6 @@ export interface GiGraphNode extends Readonly<GiGraphEntity> {
 /** A presentation-neutral projection of one materialized G_I relation. */
 export interface GiGraphEdge extends Readonly<GiGraphRelation> {
   readonly id: string;
-  /** Renderer convenience alias; the canonical field remains source_id. */
-  readonly source: string;
-  /** Renderer convenience alias; the canonical field remains target_id. */
-  readonly target: string;
 }
 
 export interface GiGraphViewModelMetadata {
@@ -53,11 +49,7 @@ export interface GiGraphViewModel {
  */
 export function buildGiGraphViewModel(artifact: GiGraphContract): GiGraphViewModel {
   const nodes = artifact.entities.map(entity => structuredClone(entity) as GiGraphNode);
-  const edges = artifact.relations.map(relation => ({
-    ...structuredClone(relation),
-    source: relation.source_id,
-    target: relation.target_id,
-  } satisfies GiGraphEdge));
+  const edges = artifact.relations.map(relation => structuredClone(relation) as GiGraphEdge);
   const extensions = structuredClone(artifact) as Record<string, unknown>;
   for (const key of [
     'graph_ref', 'graph_version', 'entities', 'relations', 'premise_groups', 'inference_steps',

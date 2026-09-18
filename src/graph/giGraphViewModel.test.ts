@@ -12,7 +12,7 @@ function load(value: unknown): GiGraphContract {
 }
 
 describe('G_I graph view model', () => {
-  it('projects the full contract fixture 1:1, in source order, with exact relation aliases', () => {
+  it('projects the full contract fixture 1:1 in source order', () => {
     const artifact = load(fixture);
     const viewModel = buildGiGraphViewModel(artifact);
 
@@ -27,9 +27,9 @@ describe('G_I graph view model', () => {
         canonical_type: artifact.relations[index].canonical_type,
         source_id: artifact.relations[index].source_id,
         target_id: artifact.relations[index].target_id,
-        source: artifact.relations[index].source_id,
-        target: artifact.relations[index].target_id,
       });
+      expect(edge).not.toHaveProperty('source');
+      expect(edge).not.toHaveProperty('target');
     });
   });
 
@@ -45,6 +45,20 @@ describe('G_I graph view model', () => {
     expect(viewModel.edges[1]).not.toHaveProperty('canonical_name');
     expect(viewModel.metadata.validation).toBeUndefined();
     expect(viewModel.metadata.artifactMetadata).toBeUndefined();
+  });
+
+  it('preserves source and target producer extensions without treating them as rendering aliases', () => {
+    const input = structuredClone(fixture) as unknown as GiGraphContract;
+    Object.assign(input.relations[0], {
+      source: 'producer-source-extension',
+      target: 'producer-target-extension',
+    });
+
+    const edge = buildGiGraphViewModel(load(input)).edges[0];
+    expect(edge.source).toBe('producer-source-extension');
+    expect(edge.target).toBe('producer-target-extension');
+    expect(edge.source_id).toBe(input.relations[0].source_id);
+    expect(edge.target_id).toBe(input.relations[0].target_id);
   });
 
   it('preserves structural metadata and normalizes only absent collections to empty arrays', () => {
@@ -89,12 +103,14 @@ describe('G_I graph view model', () => {
     expect(viewModel.edges).toHaveLength(artifact.relations.length);
 
     const withoutHomonymousEntity = structuredClone(artifact);
-    withoutHomonymousEntity.entities = withoutHomonymousEntity.entities.filter(entity => entity.id !== 'I1');
-    withoutHomonymousEntity.relations = [];
-    const projected = buildGiGraphViewModel(withoutHomonymousEntity);
-    expect(projected.metadata.inferenceSteps.some(step => step.id === 'I1')).toBe(true);
-    expect(projected.nodes.some(node => node.id === 'I1')).toBe(false);
-    expect(projected.edges).toEqual([]);
+    withoutHomonymousEntity.inference_steps![0].id = 'IS-ONLY';
+    withoutHomonymousEntity.premise_groups![0].target_inference_step_id = 'IS-ONLY';
+    const validated = load(withoutHomonymousEntity);
+    const projected = buildGiGraphViewModel(validated);
+    expect(projected.metadata.inferenceSteps.some(step => step.id === 'IS-ONLY')).toBe(true);
+    expect(projected.nodes.some(node => node.id === 'IS-ONLY')).toBe(false);
+    expect(projected.nodes).toHaveLength(validated.entities.length);
+    expect(projected.edges).toHaveLength(validated.relations.length);
   });
 
   it('contains no diagnostic or layout fields', () => {
