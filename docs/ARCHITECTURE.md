@@ -29,6 +29,8 @@ G_I JSON
   → explicit G_I slot loader
   → FULL_GI executable structural contract, or minimum auxiliary G_I reader
   → stored tagged profile
+  → FULL_GI only: GiGraphViewModel
+  → [structural renderer not yet implemented]
   → compatibility classification
   → exact reference resolver
   → trace enrichment
@@ -55,6 +57,7 @@ The import UI routes by the role selected by the user. `JsonFileInput` only read
 - `DiagnosticGraphViewModel`: pure, deterministic projection of materialized diagnostic records.
 - `DiagnosticGraphRenderAdapter`: renderer-only identities and display projection; no diagnostic derivation.
 - `DiagnosticGraphRenderer`: display and selection.
+- `GiGraphViewModel`: pure structural projection of a validated `FULL_GI`; no diagnosis or presentation.
 - Auxiliary resolver: exact, case-sensitive reference resolution without reinterpretation.
 - Legacy loader/ViewModel/`GraphRenderer`: preserved independent compatibility pipeline.
 
@@ -99,7 +102,9 @@ The application G_I slot stores an explicit `FULL_GI` or `MINIMAL_AUXILIARY_GI` 
 
 G_D remains auxiliary diagnostic context. Diagnostic Output remains the sole visible diagnostic authority: the renderer must never derive diagnosis from G_I. A future map will be built from materialized full G_I structure and annotated by Diagnostic Output, not inferred or repaired by the renderer.
 
-There is still no `GiGraphViewModel`, structural G_I renderer, complete map, or diagnostic overlay. Loading G_I only makes validated structure available in memory for later work.
+`GiGraphViewModel` is a deterministic, presentation-neutral projection available only for `FULL_GI`. Its nodes and edges correspond 1:1, in input order, to materialized entities and relations. It retains materialized inference steps, premise groups, and structural metadata separately; absent optional collections become empty view-model collections only for consumption convenience. It neither reconstructs relations nor turns inference steps or premise groups into nodes or edges. It performs no layout and contains no diagnostic state. Its renderer remains intentionally unimplemented.
+
+`MINIMAL_AUXILIARY_GI` remains auxiliary-only and cannot feed this structural ViewModel. The ViewModel uses cloned projection records (including compatible entity, relation, and root extensions) rather than treating presentation data as canonical authority; it currently adds only exact `source`/`target` aliases for the canonical relation endpoints and creates no topology indexes.
 
 There is still no complete executable G_D schema. Its current reader accepts only the documented snapshot identity plus `entities[]` fields needed for inspection; other data remains opaque.
 
