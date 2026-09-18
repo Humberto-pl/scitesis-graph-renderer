@@ -297,3 +297,35 @@ describe('GiStructuralGraphRenderer', () => {
   });
 
 });
+
+// Integration-rich acceptance intentionally uses the real loader chain rather than hand-built models.
+describe('GiStructuralGraphRenderer integration-rich acceptance', () => {
+  it('renders rich structural and diagnostic collections while toggles remain topology-neutral', async () => {
+    const giJson = (await import('../diagnostic/fixtures/integration-rich/gi-full-integration-rich.json')).default;
+    const diagnosticJson = (await import('../diagnostic/fixtures/integration-rich/diagnostic-output-v0.1.2-integration-rich.json')).default;
+    const loaded = loadGiGraphContract(structuredClone(giJson));
+    if (!loaded.ok) throw new Error(loaded.error.details.join('\n'));
+    const value = adaptGiGraphForRender(buildGiGraphViewModel(loaded.artifact));
+    const diagnostic = buildDiagnosticGraphViewModel(loadDiagnosticOutput(structuredClone(diagnosticJson)));
+    const result = buildGiDiagnosticOverlay(value, diagnostic);
+    if (result.status !== 'COMPATIBLE') throw new Error(result.status);
+    const connectorModel = buildGiDiagnosticConnectorModel(value, result.overlay);
+    const connectorBefore = structuredClone(connectorModel);
+    const { container } = render(<GiStructuralGraphRenderer model={value} overlay={result.overlay} connectorModel={connectorModel} />);
+    expect(screen.getAllByRole('button', { name: /Inspeccionar entidad/ })).toHaveLength(30);
+    expect(screen.getAllByRole('button', { name: /Inspeccionar relación/ })).toHaveLength(36);
+    expect(screen.getAllByRole('button', { name: /Inspeccionar conector diagnóstico/ })).toHaveLength(4);
+    expect(screen.getByRole('status')).toHaveTextContent('30/30 nodos · 36/36 relaciones · 4 conectores diagnósticos visibles');
+    for (const badge of ['Def_e: TRUE', 'Def_e: FALSE', 'Def_e: UNKNOWN', 'Active_e: ACTIVE', 'Active_e: INACTIVE', 'Active_e: UNKNOWN', 'BREAKPOINT', 'Downstream: AFFECTED', 'Downstream: NOT_AFFECTED', 'Downstream: UNKNOWN', 'FRONTIER', 'REVIEW_REQUIRED']) expect(screen.getAllByText(badge).length).toBeGreaterThan(0);
+    const beforePosition = container.querySelector<HTMLElement>('.react-flow__node[data-id="C1"]')?.style.transform;
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar conectores diagnósticos' }));
+    expect(screen.queryAllByRole('button', { name: /Inspeccionar conector diagnóstico/ })).toHaveLength(0);
+    expect(screen.getAllByText('Def_e: TRUE').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar diagnóstico' }));
+    expect(screen.queryAllByText('Def_e: TRUE')).toHaveLength(0);
+    expect(screen.getAllByRole('button', { name: /Inspeccionar entidad/ })).toHaveLength(30);
+    expect(screen.getAllByRole('button', { name: /Inspeccionar relación/ })).toHaveLength(36);
+    expect(container.querySelector<HTMLElement>('.react-flow__node[data-id="C1"]')?.style.transform).toBe(beforePosition);
+    expect(connectorModel).toEqual(connectorBefore);
+  });
+});

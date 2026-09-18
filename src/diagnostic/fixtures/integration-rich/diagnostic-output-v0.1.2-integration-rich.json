@@ -1,0 +1,558 @@
+{
+  "schema_version": "0.1.2",
+  "run_metadata": {
+    "run_id": "run-integration-rich",
+    "graph_ref": "integration-rich-g1",
+    "graph_version": "1.0",
+    "diagnostic_graph_ref": "diagnostic-integration-rich",
+    "diagnostic_graph_version": "1.0",
+    "diagnostic_graph_origin": "PROVIDED",
+    "evaluation_state_id": "evaluation-minimal",
+    "diagnostic_rule_version": "1",
+    "simulator_or_engine": "DIAGNOSTIC_ENGINE",
+    "implementation_version": "1",
+    "active_adjudication_refs": [
+      "adj-1"
+    ],
+    "active_diagnostic_condition_refs": [
+      "condition-1"
+    ],
+    "active_defeater_refs": [
+      "defeater-1"
+    ]
+  },
+  "scope": {
+    "scope_id": "scope-integration-rich",
+    "target_claim_ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "objective_refs": [],
+    "component_refs": [],
+    "scope_payload": null,
+    "scope_status": "RESOLVED",
+    "scope_notes": "TEST / INTEGRATION FIXTURE sintético."
+  },
+  "inference_step_states": [
+    {
+      "inference_step_id": "I1",
+      "active_state": "ACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": []
+    },
+    {
+      "inference_step_id": "I2",
+      "active_state": "INACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": []
+    },
+    {
+      "inference_step_id": "I3",
+      "active_state": "UNKNOWN",
+      "activity_adjudication_status": "REVIEW_REQUIRED",
+      "required_inputs_satisfied": "UNKNOWN",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": []
+    },
+    {
+      "inference_step_id": "I4",
+      "active_state": "ACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": []
+    },
+    {
+      "inference_step_id": "I5",
+      "active_state": "INACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": []
+    },
+    {
+      "inference_step_id": "I6",
+      "active_state": "UNKNOWN",
+      "activity_adjudication_status": "REVIEW_REQUIRED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": []
+    },
+    {
+      "inference_step_id": "I7",
+      "active_state": "ACTIVE",
+      "activity_adjudication_status": "RESOLVED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": []
+    },
+    {
+      "inference_step_id": "I-MISSING",
+      "active_state": "UNKNOWN",
+      "activity_adjudication_status": "REVIEW_REQUIRED",
+      "required_inputs_satisfied": "TRUE",
+      "applicable": "TRUE",
+      "defeated": "FALSE",
+      "blocking_reasons": [],
+      "supporting_diagnostic_evidence_ids": [
+        "evidence-1"
+      ],
+      "rule_version": "1",
+      "explanation_trace": []
+    }
+  ],
+  "claim_defendibility": [
+    {
+      "claim_id": "C1",
+      "scope_id": "scope-integration-rich",
+      "def_e_value": "TRUE",
+      "defendibility_state": "DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [
+        "route-viable-1"
+      ],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [],
+      "rule_version": "1"
+    },
+    {
+      "claim_id": "C2",
+      "scope_id": "scope-integration-rich",
+      "def_e_value": "FALSE",
+      "defendibility_state": "NOT_DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": "C1",
+      "explanation_trace": [],
+      "rule_version": "1"
+    },
+    {
+      "claim_id": "C3",
+      "scope_id": "scope-integration-rich",
+      "def_e_value": "UNKNOWN",
+      "defendibility_state": null,
+      "adjudication_status": "REVIEW_REQUIRED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [],
+      "rule_version": "1"
+    },
+    {
+      "claim_id": "C4",
+      "scope_id": "scope-integration-rich",
+      "def_e_value": "TRUE",
+      "defendibility_state": "DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [
+        "route-viable-4"
+      ],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [],
+      "rule_version": "1"
+    },
+    {
+      "claim_id": "C5",
+      "scope_id": "scope-integration-rich",
+      "def_e_value": "FALSE",
+      "defendibility_state": "NOT_DEFENDIBLE",
+      "adjudication_status": "RESOLVED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [],
+      "rule_version": "1"
+    },
+    {
+      "claim_id": "C6",
+      "scope_id": "scope-integration-rich",
+      "def_e_value": "UNKNOWN",
+      "defendibility_state": "PARTIAL",
+      "adjudication_status": "REVIEW_REQUIRED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [],
+      "rule_version": "1"
+    },
+    {
+      "claim_id": "C-MISSING",
+      "scope_id": "scope-integration-rich",
+      "def_e_value": "UNKNOWN",
+      "defendibility_state": null,
+      "adjudication_status": "REVIEW_REQUIRED",
+      "viable_derivation_ids": [],
+      "blocked_derivation_ids": [],
+      "blocking_condition_ids": [],
+      "active_defeater_ids": [],
+      "maximum_defensible_reformulation": null,
+      "explanation_trace": [],
+      "rule_version": "1"
+    }
+  ],
+  "viable_dependency_view": {
+    "view_id": "view-rich",
+    "scope_id": "scope-integration-rich",
+    "evaluation_state_id": "evaluation-minimal",
+    "transitions": [
+      {
+        "source_claim_or_input_id": "P1",
+        "inference_step_id": "I1",
+        "target_claim_id": "C1",
+        "transition_state": "ACTIVE",
+        "required_for_step": "TRUE",
+        "required_for_target": "TRUE",
+        "alternative_route_refs": [
+          "route-alternative"
+        ],
+        "why_active": "Materialized by the diagnostic engine.",
+        "provenance_refs": [
+          "provenance-1"
+        ]
+      },
+      {
+        "source_claim_or_input_id": "C1",
+        "inference_step_id": "I3",
+        "target_claim_id": "C3",
+        "transition_state": "ACTIVE",
+        "required_for_step": "TRUE",
+        "required_for_target": "TRUE",
+        "alternative_route_refs": [
+          "route-alternative"
+        ],
+        "why_active": "Materialized by the diagnostic engine.",
+        "provenance_refs": [
+          "provenance-1"
+        ]
+      },
+      {
+        "source_claim_or_input_id": "C3",
+        "inference_step_id": "I5",
+        "target_claim_id": "C5",
+        "transition_state": "ACTIVE",
+        "required_for_step": "TRUE",
+        "required_for_target": "TRUE",
+        "alternative_route_refs": [
+          "route-alternative"
+        ],
+        "why_active": "Materialized by the diagnostic engine.",
+        "provenance_refs": [
+          "provenance-1"
+        ]
+      },
+      {
+        "source_claim_or_input_id": "MISSING-INPUT",
+        "inference_step_id": "I-MISSING",
+        "target_claim_id": "C-MISSING",
+        "transition_state": "ACTIVE",
+        "required_for_step": "TRUE",
+        "required_for_target": "TRUE",
+        "alternative_route_refs": [
+          "route-alternative"
+        ],
+        "why_active": "Materialized by the diagnostic engine.",
+        "provenance_refs": [
+          "provenance-1"
+        ]
+      }
+    ],
+    "view_status": "RESOLVED",
+    "derivation_rule_version": "1"
+  },
+  "breakpoints": [
+    {
+      "breakpoint_id": "BP1",
+      "scope_id": "scope-integration-rich",
+      "route_or_path_ref": "route-BP1",
+      "origin_of_failure_ref": "condition-1",
+      "breakpoint_step_id": "I1",
+      "affected_transition_target_id": "C1",
+      "failure_mode": "BLOCKING_DIAGNOSTIC_CONDITION",
+      "active_defeater_or_blocking_condition_ref": "condition-1",
+      "first_break_on_route": "TRUE",
+      "adjudication_status": "RESOLVED",
+      "explanation_trace": []
+    },
+    {
+      "breakpoint_id": "BP2",
+      "scope_id": "scope-integration-rich",
+      "route_or_path_ref": "route-BP2",
+      "origin_of_failure_ref": "condition-1",
+      "breakpoint_step_id": "I2",
+      "affected_transition_target_id": "TARGET-MISSING",
+      "failure_mode": "BLOCKING_DIAGNOSTIC_CONDITION",
+      "active_defeater_or_blocking_condition_ref": "condition-1",
+      "first_break_on_route": "TRUE",
+      "adjudication_status": "RESOLVED",
+      "explanation_trace": []
+    },
+    {
+      "breakpoint_id": "BP3",
+      "scope_id": "scope-integration-rich",
+      "route_or_path_ref": "route-BP3",
+      "origin_of_failure_ref": "condition-1",
+      "breakpoint_step_id": "STEP-MISSING",
+      "affected_transition_target_id": "C3",
+      "failure_mode": "BLOCKING_DIAGNOSTIC_CONDITION",
+      "active_defeater_or_blocking_condition_ref": "condition-1",
+      "first_break_on_route": "TRUE",
+      "adjudication_status": "RESOLVED",
+      "explanation_trace": []
+    },
+    {
+      "breakpoint_id": "BP4",
+      "scope_id": "scope-integration-rich",
+      "route_or_path_ref": "route-BP4",
+      "origin_of_failure_ref": "condition-1",
+      "breakpoint_step_id": "I1",
+      "affected_transition_target_id": "C4",
+      "failure_mode": "BLOCKING_DIAGNOSTIC_CONDITION",
+      "active_defeater_or_blocking_condition_ref": "condition-1",
+      "first_break_on_route": "TRUE",
+      "adjudication_status": "RESOLVED",
+      "explanation_trace": []
+    },
+    {
+      "breakpoint_id": "BP5",
+      "scope_id": "scope-integration-rich",
+      "route_or_path_ref": "route-BP5",
+      "origin_of_failure_ref": "condition-1",
+      "breakpoint_step_id": "STEP-MISSING",
+      "affected_transition_target_id": "C5",
+      "failure_mode": "BLOCKING_DIAGNOSTIC_CONDITION",
+      "active_defeater_or_blocking_condition_ref": "condition-1",
+      "first_break_on_route": "TRUE",
+      "adjudication_status": "RESOLVED",
+      "explanation_trace": []
+    }
+  ],
+  "downstream_effects": [
+    {
+      "failure_ref": "BP1",
+      "target_claim_id": "C2",
+      "affected_state": "AFFECTED",
+      "adjudication_status": "RESOLVED",
+      "lost_viable_derivation_ids": [
+        "route-blocked"
+      ],
+      "remaining_viable_derivation_ids": [],
+      "required_dependency_refs": [
+        "step-rich"
+      ],
+      "alternative_route_refs": [
+        "route-alternative"
+      ],
+      "propagation_reason": "Canonical propagation result.",
+      "explanation_trace": []
+    },
+    {
+      "failure_ref": "BP4",
+      "target_claim_id": "C5",
+      "affected_state": "NOT_AFFECTED",
+      "adjudication_status": "RESOLVED",
+      "lost_viable_derivation_ids": [
+        "route-blocked"
+      ],
+      "remaining_viable_derivation_ids": [],
+      "required_dependency_refs": [
+        "step-rich"
+      ],
+      "alternative_route_refs": [
+        "route-alternative"
+      ],
+      "propagation_reason": "Canonical propagation result.",
+      "explanation_trace": []
+    },
+    {
+      "failure_ref": "NO-BP",
+      "target_claim_id": "C3",
+      "affected_state": "UNKNOWN",
+      "adjudication_status": "REVIEW_REQUIRED",
+      "lost_viable_derivation_ids": [
+        "route-blocked"
+      ],
+      "remaining_viable_derivation_ids": [],
+      "required_dependency_refs": [
+        "step-rich"
+      ],
+      "alternative_route_refs": [
+        "route-alternative"
+      ],
+      "propagation_reason": "Canonical propagation result.",
+      "explanation_trace": []
+    },
+    {
+      "failure_ref": "BP2",
+      "target_claim_id": "CLAIM-MISSING",
+      "affected_state": "AFFECTED",
+      "adjudication_status": "RESOLVED",
+      "lost_viable_derivation_ids": [
+        "route-blocked"
+      ],
+      "remaining_viable_derivation_ids": [],
+      "required_dependency_refs": [
+        "step-rich"
+      ],
+      "alternative_route_refs": [
+        "route-alternative"
+      ],
+      "propagation_reason": "Canonical propagation result.",
+      "explanation_trace": []
+    },
+    {
+      "failure_ref": "BP5",
+      "target_claim_id": "C6",
+      "affected_state": "UNKNOWN",
+      "adjudication_status": "REVIEW_REQUIRED",
+      "lost_viable_derivation_ids": [
+        "route-blocked"
+      ],
+      "remaining_viable_derivation_ids": [],
+      "required_dependency_refs": [
+        "step-rich"
+      ],
+      "alternative_route_refs": [
+        "route-alternative"
+      ],
+      "propagation_reason": "Canonical propagation result.",
+      "explanation_trace": []
+    }
+  ],
+  "defendability_frontier": {
+    "scope_id": "scope-integration-rich",
+    "evaluation_state_id": "evaluation-minimal",
+    "member_claim_ids": [
+      "C1",
+      "C4",
+      "C-MISSING"
+    ],
+    "frontier_cardinality": 3,
+    "graph_version": "1.0",
+    "diagnostic_rule_version": "1",
+    "active_adjudication_refs": [
+      "adj-1"
+    ],
+    "frontier_status": "REVIEW_REQUIRED",
+    "explanation_trace": []
+  },
+  "compatibility_maximums": [
+    {
+      "scope_id": "scope-integration-rich",
+      "route_or_path_ref": "route-BP1",
+      "claim_id": "C1",
+      "maximum_kind": "ROUTE_LOCAL_MAXIMUM",
+      "basis": "Materialized fixture record."
+    }
+  ],
+  "review_required_items": [
+    {
+      "item_id": "REV1",
+      "subject_ref": "C3",
+      "review_reason": "Synthetic review A.",
+      "blocking_question": "Review A?",
+      "possible_impact": "Fixture only.",
+      "recommended_adjudication_target": null
+    },
+    {
+      "item_id": "REV2",
+      "subject_ref": "C3",
+      "review_reason": "Synthetic review B.",
+      "blocking_question": "Review B?",
+      "possible_impact": "Fixture only.",
+      "recommended_adjudication_target": null
+    },
+    {
+      "item_id": "REV3",
+      "subject_ref": "I3",
+      "review_reason": "Synthetic inference review.",
+      "blocking_question": "Review inference?",
+      "possible_impact": "Fixture only.",
+      "recommended_adjudication_target": null
+    },
+    {
+      "item_id": "REV4",
+      "subject_ref": "SUBJECT-MISSING",
+      "review_reason": "Synthetic unmatched review.",
+      "blocking_question": "Review unmatched?",
+      "possible_impact": "Fixture only.",
+      "recommended_adjudication_target": null
+    }
+  ],
+  "explanation_summary": {
+    "summary_status": "PARTIAL_REVIEW_REQUIRED",
+    "primary_findings": [
+      "Synthetic integration acceptance only."
+    ],
+    "frontier_summary": "Three materialized members.",
+    "breakpoint_summary": "Five materialized breakpoints.",
+    "propagation_summary": "Five materialized effects.",
+    "review_required_summary": [
+      "Four review records."
+    ]
+  }
+}
